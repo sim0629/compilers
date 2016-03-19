@@ -50,8 +50,6 @@ using namespace std;
 #define TOKEN_STRLEN 16
 
 char ETokenName[][TOKEN_STRLEN] = {
-  "tDigit",                         ///< a digit
-  "tLetter",                        ///< a letter
   "tPlusMinus",                     ///< '+' or '-'
   "tMulDiv",                        ///< '*' or '/'
   "tRelOp",                         ///< relational operator
@@ -91,8 +89,6 @@ char ETokenName[][TOKEN_STRLEN] = {
 //
 
 char ETokenStr[][TOKEN_STRLEN] = {
-  "tDigit (%s)",                    ///< a digit
-  "tLetter (%s)",                   ///< a letter
   "tPlusMinus (%s)",                ///< '+' or '-'
   "tMulDiv (%s)",                   ///< '*' or '/'
   "tRelOp (%s)",                    ///< relational operator
