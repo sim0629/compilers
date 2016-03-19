@@ -46,7 +46,7 @@ using namespace std;
 //------------------------------------------------------------------------------
 /// @brief SnuPL/-1 token type
 ///
-/// each member of this enumeration represents a token in SnuPL/0
+/// each member of this enumeration represents a token in SnuPL/1
 ///
 enum EToken {
   tChar,                            ///< a single quoted character
@@ -203,7 +203,7 @@ ostream& operator<<(ostream &out, const CToken *t);
 //------------------------------------------------------------------------------
 /// @brief scanner
 ///
-/// used by CParser to scan (tokenize) SnuPL/0 code
+/// used by CParser to scan (tokenize) SnuPL/1 code
 ///
 class CScanner {
   public:
