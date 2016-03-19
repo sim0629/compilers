@@ -1,0 +1,20 @@
+module = statSequence ".".
+
+digit = "0".."9".
+letter = "a".."z".
+
+factOp = "*" | "/".
+termOp = "+" | "-".
+relOp = "=" | "#".
+
+factor = digit | "(" expression ")".
+term = factor { factOp factor }.
+simpleexpr = term { termOp term }.
+expression = simpleexpr [ relOp simplexpr ].
+
+assignment = letter ":=" expression.
+
+statement = assignment.
+statSequence = [ statement { ";" statement } ].
+
+whitespace = { " " | \n }.
