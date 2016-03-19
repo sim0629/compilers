@@ -362,6 +362,11 @@ CToken* CScanner::Scan()
       token = tMulDiv;
       break;
 
+    case '<':
+    case '>':
+      if (_in->peek() == '=') {
+        tokval += GetChar();
+      }
     case '=':
     case '#':
       token = tRelOp;
