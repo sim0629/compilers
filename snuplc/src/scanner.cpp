@@ -57,7 +57,6 @@ char ETokenName[][TOKEN_STRLEN] = {
   "tRelOp",                         ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
-  "tDot",                           ///< a dot
   "tLBrak",                         ///< a left bracket
   "tRBrak",                         ///< a right bracket
   "tNumber",                        ///< a number
@@ -95,7 +94,6 @@ char ETokenStr[][TOKEN_STRLEN] = {
   "tRelOp (%s)",                    ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
-  "tDot",                           ///< a dot
   "tLBrak",                         ///< a left bracket
   "tRBrak",                         ///< a right bracket
   "tNumber (%s)",                   ///< a number
@@ -363,10 +361,6 @@ CToken* CScanner::Scan()
 
     case ';':
       token = tSemicolon;
-      break;
-
-    case '.':
-      token = tDot;
       break;
 
     case '(':
