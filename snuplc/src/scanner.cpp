@@ -57,6 +57,10 @@ char ETokenName[][TOKEN_STRLEN] = {
   "tRelOp",                         ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
+  "tColon",                         ///< a colon
+  "tComma",                         ///< a comma
+  "tLSqBrak",                       ///< a left square bracket
+  "tRSqBrak",                       ///< a right square bracket
   "tLBrak",                         ///< a left bracket
   "tRBrak",                         ///< a right bracket
   "tNumber",                        ///< a number
@@ -94,6 +98,10 @@ char ETokenStr[][TOKEN_STRLEN] = {
   "tRelOp (%s)",                    ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
+  "tColon",                         ///< a colon
+  "tComma",                         ///< a comma
+  "tLSqBrak",                       ///< a left square bracket
+  "tRSqBrak",                       ///< a right square bracket
   "tLBrak",                         ///< a left bracket
   "tRBrak",                         ///< a right bracket
   "tNumber (%s)",                   ///< a number
@@ -337,6 +345,8 @@ CToken* CScanner::Scan()
       if (_in->peek() == '=') {
         tokval += GetChar();
         token = tAssign;
+      } else {
+        token = tColon;
       }
       break;
 
@@ -361,6 +371,18 @@ CToken* CScanner::Scan()
 
     case ';':
       token = tSemicolon;
+      break;
+
+    case ',':
+      token = tComma;
+      break;
+
+    case '[':
+      token = tLSqBrak;
+      break;
+
+    case ']':
+      token = tRSqBrak;
       break;
 
     case '(':

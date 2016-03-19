@@ -56,6 +56,10 @@ enum EToken {
   tRelOp,                           ///< relational operator
   tAssign,                          ///< assignment operator
   tSemicolon,                       ///< a semicolon
+  tColon,                           ///< a colon
+  tComma,                           ///< a comma
+  tLSqBrak,                         ///< a left square bracket
+  tRSqBrak,                         ///< a right square bracket
   tLBrak,                           ///< a left bracket
   tRBrak,                           ///< a right bracket
   tNumber,                          ///< a number
