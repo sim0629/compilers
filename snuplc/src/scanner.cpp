@@ -50,6 +50,8 @@ using namespace std;
 #define TOKEN_STRLEN 16
 
 char ETokenName[][TOKEN_STRLEN] = {
+  "tChar",                          ///< a single quoted character
+  "tString",                        ///< a double quoted string
   "tPlusMinus",                     ///< '+' or '-'
   "tMulDiv",                        ///< '*' or '/'
   "tRelOp",                         ///< relational operator
@@ -89,6 +91,8 @@ char ETokenName[][TOKEN_STRLEN] = {
 //
 
 char ETokenStr[][TOKEN_STRLEN] = {
+  "tChar (%s)",                     ///< a single quoted character
+  "tString (%s)",                   ///< a double quoted string
   "tPlusMinus (%s)",                ///< '+' or '-'
   "tMulDiv (%s)",                   ///< '*' or '/'
   "tRelOp (%s)",                    ///< relational operator
@@ -385,6 +389,57 @@ CToken* CScanner::Scan()
 
     case ')':
       token = tRBrak;
+      break;
+
+    case '\'':
+      if (_in->peek() == '\'') {
+        tokval = "empty character constant";
+        GetChar();
+        break;
+      }
+      c = GetUnescapedChar();
+      if (!_in->good()) {
+        tokval = _in->eof() ?
+          "unexpected end of file in character constant" :
+          "unexpected I/O error in character constant";
+        break;
+      } else {
+        tokval = c;
+      }
+      if (GetChar() != '\'') {
+        tokval = _in->good() ?
+          "too many characters in character constant" :
+          _in->eof() ?
+          "unexpected end of file in character constant" :
+          "unexpected I/O error in character constant";
+
+        while (GetChar() != '\'' && _in->good())
+          ;
+      } else {
+        token = tChar;
+      }
+      GetChar();
+
+      break;
+
+    case '"':
+      tokval.clear();
+      for (;;) {
+        if (_in->peek() == '"') {
+          token = tString;
+          GetChar();
+          break;
+        }
+        c = GetUnescapedChar();
+        if (!_in->good()) {
+          tokval = _in->eof() ?
+            "unexpected end of file in string constant" :
+            "unexpected I/O error in string constant";
+          break;
+        } else {
+          tokval += c;
+        }
+      }
       break;
 
     default:

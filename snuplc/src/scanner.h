@@ -49,6 +49,8 @@ using namespace std;
 /// each member of this enumeration represents a token in SnuPL/0
 ///
 enum EToken {
+  tChar,                            ///< a single quoted character
+  tString,                          ///< a double quoted string
   tPlusMinus,                       ///< '+' or '-'
   tMulDiv,                          ///< '*' or '/'
   tRelOp,                           ///< relational operator
