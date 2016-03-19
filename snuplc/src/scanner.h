@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// @brief SnuPL/0 scanner
+/// @brief SnuPL/1 scanner
 /// @author Bernhard Egger <bernhard@csap.snu.ac.kr>
 /// @section changelog Change Log
 /// 2012/09/14 Bernhard Egger created
@@ -297,4 +297,4 @@ class CScanner {
 };
 
 
-#endif // __SnuPL0_SCANNER_H__
+#endif // __SnuPL1_SCANNER_H__
