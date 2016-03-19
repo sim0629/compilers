@@ -347,8 +347,12 @@ CToken* CScanner::Scan()
       token = tPlusMinus;
       break;
 
-    case '*':
     case '/':
+      if (_in->peek() == '/') {
+        while (GetChar() != '\n' && _in->good()) ;
+        return Scan();
+      }
+    case '*':
       token = tMulDiv;
       break;
 
