@@ -59,6 +59,22 @@ enum EToken {
   tDot,                             ///< a dot
   tLBrak,                           ///< a left bracket
   tRBrak,                           ///< a right bracket
+  tNumber,                          ///< a number
+  tIdent,                           ///< an identifier
+  tModule,                          ///< a keyword 'module'
+  tBegin,                           ///< a keyword 'begin'
+  tEnd,                             ///< a keyword 'end'
+  tBoolean,                         ///< a boolean value keyword
+  tBaseType,                        ///< a basetype keyword
+  tIf,                              ///< a keyword 'if'
+  tThen,                            ///< a keyword 'then'
+  tElse,                            ///< a keyword 'else'
+  tWhile,                           ///< a keyword 'while'
+  tDo,                              ///< a keyword 'do'
+  tReturn,                          ///< a keyword 'return'
+  tVar,                             ///< a keyword 'var'
+  tProcedure,                       ///< a keyword 'procedure'
+  tFunction,                        ///< a keyword 'function'
 
   tEOF,                             ///< end of file
   tIOError,                         ///< I/O error
@@ -280,6 +296,20 @@ class CScanner {
     /// @retval true character is white space
     /// @retval false character is not white space
     bool IsWhite(char c) const;
+
+    /// @brief check if a character is a digit
+    ///
+    /// @param c character
+    /// @retval true character is a digit
+    /// @retval false character is not a digit
+    bool IsDigit(char c) const;
+
+    /// @brief check if a character is a letter
+    ///
+    /// @param c character
+    /// @retval true character is a letter
+    /// @retval false character is not a letter
+    bool IsLetter(char c) const;
 
     /// @}
 

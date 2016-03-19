@@ -60,6 +60,22 @@ char ETokenName[][TOKEN_STRLEN] = {
   "tDot",                           ///< a dot
   "tLBrak",                         ///< a left bracket
   "tRBrak",                         ///< a right bracket
+  "tNumber",                        ///< a number
+  "tIdent",                         ///< an identifier
+  "tModule",                        ///< a keyword 'module'
+  "tBegin",                         ///< a keyword 'begin'
+  "tEnd",                           ///< a keyword 'end'
+  "tBoolean",                       ///< a boolean value keyword
+  "tBaseType",                      ///< a basetype keyword
+  "tIf",                            ///< a keyword 'if'
+  "tThen",                          ///< a keyword 'then'
+  "tElse",                          ///< a keyword 'else'
+  "tWhile",                         ///< a keyword 'while'
+  "tDo",                            ///< a keyword 'do'
+  "tReturn",                        ///< a keyword 'return'
+  "tVar",                           ///< a keyword 'var'
+  "tProcedure",                     ///< a keyword 'procedure'
+  "tFunction",                      ///< a keyword 'function'
 
   "tEOF",                           ///< end of file
   "tIOError",                       ///< I/O error
@@ -82,6 +98,22 @@ char ETokenStr[][TOKEN_STRLEN] = {
   "tDot",                           ///< a dot
   "tLBrak",                         ///< a left bracket
   "tRBrak",                         ///< a right bracket
+  "tNumber (%s)",                   ///< a number
+  "tIdent (%s)",                    ///< an identifier
+  "tModule",                        ///< a keyword 'module'
+  "tBegin",                         ///< a keyword 'begin'
+  "tEnd",                           ///< a keyword 'end'
+  "tBoolean (%s)",                  ///< a boolean value keyword
+  "tBaseType (%s)",                 ///< a basetype keyword
+  "tIf",                            ///< a keyword 'if'
+  "tThen",                          ///< a keyword 'then'
+  "tElse",                          ///< a keyword 'else'
+  "tWhile",                         ///< a keyword 'while'
+  "tDo",                            ///< a keyword 'do'
+  "tReturn",                        ///< a keyword 'return'
+  "tVar",                           ///< a keyword 'var'
+  "tProcedure",                     ///< a keyword 'procedure'
+  "tFunction",                      ///< a keyword 'function'
 
   "tEOF",                           ///< end of file
   "tIOError",                       ///< I/O error
@@ -94,6 +126,23 @@ char ETokenStr[][TOKEN_STRLEN] = {
 //
 pair<const char*, EToken> Keywords[] =
 {
+  make_pair("module", tModule),
+  make_pair("begin", tBegin),
+  make_pair("end", tEnd),
+  make_pair("true", tBoolean),
+  make_pair("false", tBoolean),
+  make_pair("boolean", tBaseType),
+  make_pair("char", tBaseType),
+  make_pair("integer", tBaseType),
+  make_pair("if", tIf),
+  make_pair("then", tThen),
+  make_pair("else", tElse),
+  make_pair("while", tWhile),
+  make_pair("do", tDo),
+  make_pair("return", tReturn),
+  make_pair("var", tVar),
+  make_pair("procedure", tProcedure),
+  make_pair("function", tFunction),
 };
 
 
@@ -325,11 +374,19 @@ CToken* CScanner::Scan()
       break;
 
     default:
-      if (('0' <= c) && (c <= '9')) {
-        token = tDigit;
-      } else
-      if (('a' <= c) && (c <= 'z')) {
-        token = tLetter;
+      if (IsDigit(c)) {
+        token = tNumber;
+        while (IsDigit(_in->peek())) {
+          tokval += GetChar();
+        }
+      } else if (IsLetter(c)) {
+        token = tIdent;
+        while (IsLetter(_in->peek()) || IsDigit(_in->peek())) {
+          tokval += GetChar();
+        }
+        if (keywords.find(tokval) != keywords.end()) {
+          token = keywords[tokval];
+        }
       } else {
         tokval = "invalid character '";
         tokval += c;
@@ -358,4 +415,16 @@ string CScanner::GetChar(int n)
 bool CScanner::IsWhite(char c) const
 {
   return ((c == ' ') || (c == '\t') || (c == '\n'));
+}
+
+bool CScanner::IsDigit(char c) const
+{
+  return (('0' <= c) && (c <= '9'));
+}
+
+bool CScanner::IsLetter(char c) const
+{
+  return ((('A' <= c) && (c <= 'Z')) ||
+          (('a' <= c) && (c <= 'z')) ||
+          (c == '_'));
 }
