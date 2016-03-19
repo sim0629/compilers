@@ -291,6 +291,11 @@ class CScanner {
     /// @retval string containing the characters read
     string GetChar(int n);
 
+    /// @brief return the next character, unescape if necessary
+    ///
+    /// @retval next character in the input stream
+    char GetUnescapedChar(void);
+
     /// @brief check if a character is a white character
     ///
     /// @param c character

@@ -426,6 +426,19 @@ string CScanner::GetChar(int n)
   return str;
 }
 
+char CScanner::GetUnescapedChar()
+{
+  char c = GetChar();
+  if (c != '\\') return c;
+  switch (c = GetChar())
+  {
+    case 'n': return '\n';
+    case 't': return '\t';
+    case '0': return '\0';
+    default: return c;
+  }
+}
+
 bool CScanner::IsWhite(char c) const
 {
   return ((c == ' ') || (c == '\t') || (c == '\n'));
