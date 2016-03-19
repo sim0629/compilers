@@ -206,20 +206,18 @@ ostream& CToken::print(ostream &out) const
 
 string CToken::escape(const string text)
 {
-  const char *t = text.c_str();
   string s;
 
-  while (*t != '\0') {
-    switch (*t) {
+  for (char ch : text) {
+    switch (ch) {
       case '\n': s += "\\n";  break;
       case '\t': s += "\\t";  break;
       case '\0': s += "\\0";  break;
       case '\'': s += "\\'";  break;
       case '\"': s += "\\\""; break;
       case '\\': s += "\\\\"; break;
-      default :  s += *t;
+      default :  s += ch;
     }
-    t++;
   }
 
   return s;
