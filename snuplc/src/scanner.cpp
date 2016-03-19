@@ -53,7 +53,8 @@ char ETokenName[][TOKEN_STRLEN] = {
   "tChar",                          ///< a single quoted character
   "tString",                        ///< a double quoted string
   "tPlusMinus",                     ///< '+' or '-'
-  "tMulDiv",                        ///< '*' or '/'
+  "tOr",                            ///< '||'
+  "tMulDivAnd",                     ///< '*' or '/' or '&&'
   "tRelOp",                         ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
@@ -94,7 +95,8 @@ char ETokenStr[][TOKEN_STRLEN] = {
   "tChar (%s)",                     ///< a single quoted character
   "tString (%s)",                   ///< a double quoted string
   "tPlusMinus (%s)",                ///< '+' or '-'
-  "tMulDiv (%s)",                   ///< '*' or '/'
+  "tOr",                            ///< '||'
+  "tMulDivAnd (%s)",                ///< '*' or '/' or '&&'
   "tRelOp (%s)",                    ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
@@ -353,13 +355,27 @@ CToken* CScanner::Scan()
       token = tPlusMinus;
       break;
 
+    case '|':
+      if (_in->peek() == '|') {
+        tokval += GetChar();
+        token = tOr;
+      }
+      break;
+
     case '/':
       if (_in->peek() == '/') {
         while (GetChar() != '\n' && _in->good()) ;
         return Scan();
       }
     case '*':
-      token = tMulDiv;
+      token = tMulDivAnd;
+      break;
+
+    case '&':
+      if (_in->peek() == '&') {
+        tokval += GetChar();
+        token = tMulDivAnd;
+      }
       break;
 
     case '<':

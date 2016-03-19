@@ -52,7 +52,8 @@ enum EToken {
   tChar,                            ///< a single quoted character
   tString,                          ///< a double quoted string
   tPlusMinus,                       ///< '+' or '-'
-  tMulDiv,                          ///< '*' or '/'
+  tOr,                              ///< '||'
+  tMulDivAnd,                       ///< '*' or '/' or '&&'
   tRelOp,                           ///< relational operator
   tAssign,                          ///< assignment operator
   tSemicolon,                       ///< a semicolon
