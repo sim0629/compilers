@@ -320,6 +320,19 @@ class CScanner {
     /// @retval false character is not a letter
     bool IsLetter(char c) const;
 
+    /// @brief check if a character is an escaping sequence character (0, t, n, \, ', ")
+    ///
+    /// @param c character
+    /// @retval true character is an escaping sequence character
+    /// @retval false character is not an escaping sequence character
+    bool IsEscapeSequenceChar(char c) const;
+
+    /// @brief unescape the escape sequence character (0, t, n, \, ', ")
+    ///
+    /// @param c character
+    /// @retval char unescaped character
+    char Unescape(char c) const;
+
     /// @}
 
 

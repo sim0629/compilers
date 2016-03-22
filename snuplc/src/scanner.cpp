@@ -531,3 +531,18 @@ bool CScanner::IsLetter(char c) const
           (('a' <= c) && (c <= 'z')) ||
           (c == '_'));
 }
+
+bool CScanner::IsEscapeSequenceChar(char c) const
+{
+  return c == '0' || c == 't' || c == 'n' || c == '\\' || c == '\'' || c == '"';
+}
+
+char CScanner::Unescape(char c) const
+{
+  switch (c) {
+    case '0': return '\0';
+    case 't': return '\t';
+    case 'n': return '\n';
+    default: return c;
+  }
+}
