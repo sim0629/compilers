@@ -413,52 +413,58 @@ CToken* CScanner::Scan()
       break;
 
     case '\'':
+      char ret;
       if (_in->peek() == '\'') {
-        tokval = "empty character constant";
-        GetChar();
+        tokval += GetChar();
         break;
       }
-      c = GetUnescapedChar();
-      if (!_in->good()) {
-        tokval = _in->eof() ?
-          "unexpected end of file in character constant" :
-          "unexpected I/O error in character constant";
-        break;
-      } else {
-        tokval = c;
-      }
-      if (GetChar() != '\'') {
-        tokval = _in->good() ?
-          "too many characters in character constant" :
-          _in->eof() ?
-          "unexpected end of file in character constant" :
-          "unexpected I/O error in character constant";
+      c = GetChar();
+      if (!_in->good()) break;
 
-        while (GetChar() != '\'' && _in->good())
-          ;
+      tokval += c;
+      if (c == '\\' && IsEscapeSequenceChar(_in->peek())) {
+        c = GetChar();
+        ret = Unescape(c);
+        tokval += c;
       } else {
-        token = tChar;
+        ret = c;
       }
-      GetChar();
+
+      c = GetChar();
+      if (c == '\'') {
+        token = tChar;
+        tokval = ret;
+        break;
+      }
+
+      for (; _in->good(); c = GetChar()) {
+        tokval += c;
+        if (c == '\'') break;
+      }
 
       break;
 
     case '"':
-      tokval.clear();
-      for (;;) {
-        if (_in->peek() == '"') {
-          token = tString;
-          GetChar();
-          break;
-        }
-        c = GetUnescapedChar();
-        if (!_in->good()) {
-          tokval = _in->eof() ?
-            "unexpected end of file in string constant" :
-            "unexpected I/O error in string constant";
-          break;
-        } else {
+      {
+        string ret;
+        for (;;) {
+          c = GetChar();
+          if (!_in->good()) break;
+
+          if (c == '"') {
+            token = tString;
+            tokval = ret;
+            break;
+          }
+
           tokval += c;
+          if (c == '\\' && IsEscapeSequenceChar(_in->peek())) {
+            c = GetChar();
+            ret += Unescape(c);
+            tokval += c;
+          } else {
+            ret += c;
+          }
         }
       }
       break;
@@ -500,19 +506,6 @@ string CScanner::GetChar(int n)
   string str;
   for (int i=0; i<n; i++) str += GetChar();
   return str;
-}
-
-char CScanner::GetUnescapedChar()
-{
-  char c = GetChar();
-  if (c != '\\') return c;
-  switch (c = GetChar())
-  {
-    case 'n': return '\n';
-    case 't': return '\t';
-    case '0': return '\0';
-    default: return c;
-  }
 }
 
 bool CScanner::IsWhite(char c) const
