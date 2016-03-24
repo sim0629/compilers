@@ -55,6 +55,7 @@ char ETokenName[][TOKEN_STRLEN] = {
   "tPlusMinus",                     ///< '+' or '-'
   "tOr",                            ///< '||'
   "tMulDivAnd",                     ///< '*' or '/' or '&&'
+  "tNot",                           ///< '!'
   "tRelOp",                         ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
@@ -98,6 +99,7 @@ char ETokenStr[][TOKEN_STRLEN] = {
   "tPlusMinus (%s)",                ///< '+' or '-'
   "tOr",                            ///< '||'
   "tMulDivAnd (%s)",                ///< '*' or '/' or '&&'
+  "tNot",                           ///< '!'
   "tRelOp (%s)",                    ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
@@ -378,6 +380,10 @@ CToken* CScanner::Scan()
         tokval += GetChar();
         token = tMulDivAnd;
       }
+      break;
+
+    case '!':
+      token = tNot;
       break;
 
     case '<':

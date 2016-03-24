@@ -54,6 +54,7 @@ enum EToken {
   tPlusMinus,                       ///< '+' or '-'
   tOr,                              ///< '||'
   tMulDivAnd,                       ///< '*' or '/' or '&&'
+  tNot,                             ///< '!'
   tRelOp,                           ///< relational operator
   tAssign,                          ///< assignment operator
   tSemicolon,                       ///< a semicolon
