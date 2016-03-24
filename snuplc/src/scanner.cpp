@@ -60,6 +60,7 @@ char ETokenName[][TOKEN_STRLEN] = {
   "tSemicolon",                     ///< a semicolon
   "tColon",                         ///< a colon
   "tComma",                         ///< a comma
+  "tDot",                           ///< a dot
   "tLSqBrak",                       ///< a left square bracket
   "tRSqBrak",                       ///< a right square bracket
   "tLBrak",                         ///< a left bracket
@@ -102,6 +103,7 @@ char ETokenStr[][TOKEN_STRLEN] = {
   "tSemicolon",                     ///< a semicolon
   "tColon",                         ///< a colon
   "tComma",                         ///< a comma
+  "tDot",                           ///< a dot
   "tLSqBrak",                       ///< a left square bracket
   "tRSqBrak",                       ///< a right square bracket
   "tLBrak",                         ///< a left bracket
@@ -394,6 +396,10 @@ CToken* CScanner::Scan()
 
     case ',':
       token = tComma;
+      break;
+
+    case '.':
+      token = tDot;
       break;
 
     case '[':

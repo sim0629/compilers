@@ -59,6 +59,7 @@ enum EToken {
   tSemicolon,                       ///< a semicolon
   tColon,                           ///< a colon
   tComma,                           ///< a comma
+  tDot,                             ///< a dot
   tLSqBrak,                         ///< a left square bracket
   tRSqBrak,                         ///< a right square bracket
   tLBrak,                           ///< a left bracket
