@@ -315,6 +315,13 @@ class CScanner {
     /// @retval false character is not a letter
     bool IsLetter(char c) const;
 
+    /// @brief check if a character is printable (0x20 - 0x7F)
+    ///
+    /// @param c character
+    /// @retval true character is printable
+    /// @retval false character is not printable
+    bool IsPrintable(char c) const;
+
     /// @brief check if a character is an escaping sequence character (0, t, n, \, ', ")
     ///
     /// @param c character

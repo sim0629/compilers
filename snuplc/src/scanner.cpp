@@ -413,35 +413,34 @@ CToken* CScanner::Scan()
       break;
 
     case '\'':
-      char ret;
-      if (_in->peek() == '\'') {
-        tokval += GetChar();
-        break;
-      }
-      c = GetChar();
-      if (!_in->good()) break;
+      {
+        char ret;
 
-      tokval += c;
-      if (c == '\\' && IsEscapeSequenceChar(_in->peek())) {
+        if (_in->peek() == '\'') {
+          tokval += GetChar();
+          break;
+        }
+
         c = GetChar();
-        ret = Unescape(c);
+        if (!_in->good()) break;
+
         tokval += c;
-      } else {
-        ret = c;
-      }
+        if (c == '\\') {
+          if (!IsEscapeSequenceChar(_in->peek())) break;
+          c = GetChar();
+          ret = Unescape(c);
+          tokval += c;
+        } else {
+          if (!IsPrintable(c)) break;
+          ret = c;
+        }
 
-      c = GetChar();
-      if (c == '\'') {
-        token = tChar;
-        tokval = ret;
-        break;
+        if (_in->peek() == '\'') {
+          c = GetChar();
+          token = tChar;
+          tokval = ret;
+        }
       }
-
-      for (; _in->good(); c = GetChar()) {
-        tokval += c;
-        if (c == '\'') break;
-      }
-
       break;
 
     case '"':
@@ -458,11 +457,13 @@ CToken* CScanner::Scan()
           }
 
           tokval += c;
-          if (c == '\\' && IsEscapeSequenceChar(_in->peek())) {
+          if (c == '\\') {
+            if (!IsEscapeSequenceChar(_in->peek())) break;
             c = GetChar();
             ret += Unescape(c);
             tokval += c;
           } else {
+            if (!IsPrintable(c)) break;
             ret += c;
           }
         }
@@ -523,6 +524,11 @@ bool CScanner::IsLetter(char c) const
   return ((('A' <= c) && (c <= 'Z')) ||
           (('a' <= c) && (c <= 'z')) ||
           (c == '_'));
+}
+
+bool CScanner::IsPrintable(char c) const
+{
+  return c >= 0x20 && c <= 0x7F;
 }
 
 bool CScanner::IsEscapeSequenceChar(char c) const
