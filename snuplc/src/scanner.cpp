@@ -428,10 +428,7 @@ CToken* CScanner::Scan()
       {
         char ret;
 
-        if (_in->peek() == '\'') {
-          tokval += GetChar();
-          break;
-        }
+        if (_in->peek() == '\'') break;
 
         c = GetChar();
         if (!_in->good()) break;
