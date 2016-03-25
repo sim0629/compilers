@@ -428,24 +428,24 @@ CToken* CScanner::Scan()
       {
         char ret;
 
-        if (_in->peek() == '\'') break;
+        c = _in->peek();
+        if (!IsPrintable(c)) break;
+        if (c == '\'') break;
 
-        c = GetChar();
-        if (!_in->good()) break;
-
+        GetChar();
         tokval += c;
+
         if (c == '\\') {
           if (!IsEscapeSequenceChar(_in->peek())) break;
           c = GetChar();
           ret = Unescape(c);
           tokval += c;
         } else {
-          if (!IsPrintable(c)) break;
           ret = c;
         }
 
         if (_in->peek() == '\'') {
-          c = GetChar();
+          GetChar();
           token = tChar;
           tokval = ret;
         }
@@ -456,9 +456,11 @@ CToken* CScanner::Scan()
       {
         string ret;
         for (;;) {
-          c = GetChar();
-          if (!_in->good()) break;
+          c = _in->peek();
 
+          if (!IsPrintable(c)) break;
+
+          GetChar();
           if (c == '"') {
             token = tString;
             tokval = ret;
@@ -472,7 +474,6 @@ CToken* CScanner::Scan()
             ret += Unescape(c);
             tokval += c;
           } else {
-            if (!IsPrintable(c)) break;
             ret += c;
           }
         }
