@@ -5,8 +5,6 @@
 /// 2012/09/14 Bernhard Egger created
 /// 2013/03/07 Bernhard Egger adapted to SnuPL/0
 /// 2016/03/11 Bernhard Egger adapted to SnuPL/1
-/// 2016/03/13 Bernhard Egger assignment 1: scans SnuPL/-1
-
 ///
 /// @section license_section License
 /// Copyright (c) 2012-2016, Bernhard Egger
@@ -50,16 +48,44 @@ using namespace std;
 /// each member of this enumeration represents a token in SnuPL/0
 ///
 enum EToken {
+  tIdent=0,                         ///< ident
   tNumber,                          ///< number
+  tBoolConst,                       ///< boolean constant
+  tCharConst,                       ///< character constant
+  tString,                          ///< string constant
   tPlusMinus,                       ///< '+' or '-'
   tMulDiv,                          ///< '*' or '/'
+  tOr,                              ///< '||'
+  tAnd,                             ///< '&&'
+  tNot,                             ///< '!'
   tRelOp,                           ///< relational operator
   tAssign,                          ///< assignment operator
+  tComma,                           ///< a comma
   tSemicolon,                       ///< a semicolon
+  tColon,                           ///< a colon
   tDot,                             ///< a dot
   tLParens,                         ///< a left parenthesis
   tRParens,                         ///< a right parenthesis
+  tLBrak,                           ///< a left bracket
+  tRBrak,                           ///< a right bracket
 
+  tModule,                          ///< 'module'
+  tProcedure,                       ///< 'procedure'
+  tFunction,                        ///< 'function'
+  tVarDecl,                         ///< 'var'
+  tInteger,                         ///< 'integer'
+  tBoolean,                         ///< 'boolean'
+  tChar,                            ///< 'char'
+  tBegin,                           ///< 'begin'
+  tEnd,                             ///< 'end'
+  tIf,                              ///< 'if'
+  tThen,                            ///< 'then'
+  tElse,                            ///< 'else'
+  tWhile,                           ///< 'while'
+  tDo,                              ///< 'do'
+  tReturn,                          ///< 'return'
+
+  tComment,                         ///< comment ('// .... \n')
   tEOF,                             ///< end of file
   tIOError,                         ///< I/O error
   tUndefined,                       ///< undefined
@@ -247,7 +273,7 @@ class CScanner {
     void NextToken(void);
 
     /// @brief store the current position of the input stream internally
-    void RecordStreamPosition(void);
+    void RecordStreamPosition();
 
     /// @brief return the previously recorded input stream position
     ///
@@ -309,6 +335,14 @@ class CScanner {
     /// @retval true character is valid as an ID character
     /// @retval false character is not valid in an ID
     bool IsIDChar(char c) const;
+
+    /// @brief parse a character or string constant
+    ///
+    /// @param &tval token value
+    /// @param type  token type (tCharConst / tString)
+    /// @retval token type if the character/string has been successfully parsed
+    /// @retval tUndefined otherwise (tval set accordingly)
+    EToken GetCharConst(string &tval, EToken type);
 
     /// @}
 

@@ -3,6 +3,7 @@ CCFLAGS=-std=c++0x -g -O0
 
 SRC_DIR=src
 OBJ_DIR=obj
+LIB_DIR=lib
 
 DEPS=scanner.h \
 		 parser.h \
@@ -20,8 +21,8 @@ PARSER=parser.cpp \
 			 ir.cpp
 
 DEPS_=$(patsubst %,$(SRC_DIR)/%,$(DEPS))
-OBJ_SCANNER=$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SCANNER))
-OBJ_PARSER=$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(PARSER) $(SCANNER))
+LIB_SCANNER=$(patsubst %.cpp,$(LIB_DIR)/%.o,$(SCANNER))
+OBJ_PARSER=$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(PARSER))
 
 .PHONY: clean doc
 
@@ -30,11 +31,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEPS_)
 
 all: test_scanner test_parser
 
-test_scanner: $(OBJ_DIR)/test_scanner.o $(OBJ_SCANNER)
-	$(CC) $(CCFLAGS) -o $@ $(OBJ_DIR)/test_scanner.o $(OBJ_SCANNER)
+test_scanner: $(OBJ_DIR)/test_scanner.o
+	$(CC) $(CCFLAGS) -o $@ $(OBJ_DIR)/test_scanner.o $(LIB_SCANNER)
 
 test_parser: $(OBJ_DIR)/test_parser.o $(OBJ_PARSER)
-	$(CC) $(CCFLAGS) -o $@ $(OBJ_DIR)/test_parser.o $(OBJ_PARSER)
+	$(CC) $(CCFLAGS) -o $@ $(OBJ_DIR)/test_parser.o $(LIB_SCANNER) $(OBJ_PARSER)
 
 doc:
 	doxygen

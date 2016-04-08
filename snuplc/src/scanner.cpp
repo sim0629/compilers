@@ -4,8 +4,8 @@
 /// @section changelog Change Log
 /// 2012/09/14 Bernhard Egger created
 /// 2013/03/07 Bernhard Egger adapted to SnuPL/0
-/// 2014/09/10 Bernhard Egger assignment 1: scans SnuPL/-1
-/// 2016/03/13 Bernhard Egger assignment 1: adapted to modified SnuPL/-1 syntax
+/// 2016/03/11 Bernhard Egger adapted to SnuPL/1
+/// 2016/03/13 Bernhard Egger assignment 1: scans SnuPL/-1
 ///
 /// @section license_section License
 /// Copyright (c) 2012-2016, Bernhard Egger
@@ -50,16 +50,15 @@ using namespace std;
 #define TOKEN_STRLEN 16
 
 char ETokenName[][TOKEN_STRLEN] = {
-  "tDigit",                         ///< a digit
-  "tLetter",                        ///< a letter
+  "tNumber",                        ///< number
   "tPlusMinus",                     ///< '+' or '-'
   "tMulDiv",                        ///< '*' or '/'
   "tRelOp",                         ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
   "tDot",                           ///< a dot
-  "tLBrak",                         ///< a left bracket
-  "tRBrak",                         ///< a right bracket
+  "tLParens",                       ///< a left parenthesis
+  "tRParens",                       ///< a right parenthesis
 
   "tEOF",                           ///< end of file
   "tIOError",                       ///< I/O error
@@ -72,16 +71,15 @@ char ETokenName[][TOKEN_STRLEN] = {
 //
 
 char ETokenStr[][TOKEN_STRLEN] = {
-  "tDigit (%s)",                    ///< a digit
-  "tLetter (%s)",                   ///< a letter
+  "tNumber (%s)",                   ///< number
   "tPlusMinus (%s)",                ///< '+' or '-'
   "tMulDiv (%s)",                   ///< '*' or '/'
   "tRelOp (%s)",                    ///< relational operator
   "tAssign",                        ///< assignment operator
   "tSemicolon",                     ///< a semicolon
   "tDot",                           ///< a dot
-  "tLBrak",                         ///< a left bracket
-  "tRBrak",                         ///< a right bracket
+  "tLParens",                       ///< a left parenthesis
+  "tRParens",                       ///< a right parenthesis
 
   "tEOF",                           ///< end of file
   "tIOError",                       ///< I/O error
@@ -174,6 +172,31 @@ string CToken::escape(const string text)
   return s;
 }
 
+string CToken::unescape(const string text)
+{
+  const char *t = text.c_str();
+  string s;
+
+  while (*t != '\0') {
+    if (*t == '\\') {
+      switch (*++t) {
+        case 'n': s += "\n";  break;
+        case 't': s += "\t";  break;
+        case '0': s += "\0";  break;
+        case '\'': s += "'";  break;
+        case '"': s += "\""; break;
+        case '\\': s += "\\"; break;
+        default :  s += '?';
+      }
+    } else {
+      s += *t;
+    }
+    t++;
+  }
+
+  return s;
+}
+
 ostream& operator<<(ostream &out, const CToken &t)
 {
   return t.print(out);
@@ -251,7 +274,7 @@ void CScanner::NextToken()
   _token = Scan();
 }
 
-void CScanner::RecordStreamPosition()
+void CScanner::RecordStreamPosition(void)
 {
   _saved_line = _line;
   _saved_char = _char;
@@ -317,25 +340,24 @@ CToken* CScanner::Scan()
       break;
 
     case '(':
-      token = tLBrak;
+      token = tLParens;
       break;
 
     case ')':
-      token = tRBrak;
+      token = tRParens;
       break;
 
     default:
-      if (('0' <= c) && (c <= '9')) {
-        token = tDigit;
-      } else
-      if (('a' <= c) && (c <= 'z')) {
-        token = tLetter;
+      if (IsNum(c)) {
+        while (IsNum(_in->peek())) tokval += GetChar();
+        token = tNumber;
       } else {
         tokval = "invalid character '";
         tokval += c;
         tokval += "'";
       }
       break;
+
   }
 
   return NewToken(token, tokval);
@@ -357,5 +379,20 @@ string CScanner::GetChar(int n)
 
 bool CScanner::IsWhite(char c) const
 {
-  return ((c == ' ') || (c == '\n'));
+  return ((c == ' ') || (c == '\t') || (c == '\n'));
+}
+
+bool CScanner::IsAlpha(char c) const
+{
+  return ((('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || (c == '_'));
+}
+
+bool CScanner::IsNum(char c) const
+{
+  return (('0' <= c) && (c <= '9'));
+}
+
+bool CScanner::IsIDChar(char c) const
+{
+  return (IsAlpha(c) || IsNum(c));
 }
