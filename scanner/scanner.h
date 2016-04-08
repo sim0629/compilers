@@ -1,12 +1,10 @@
 //------------------------------------------------------------------------------
-/// @brief SnuPL/1 scanner
+/// @brief SnuPL/0 scanner
 /// @author Bernhard Egger <bernhard@csap.snu.ac.kr>
 /// @section changelog Change Log
 /// 2012/09/14 Bernhard Egger created
 /// 2013/03/07 Bernhard Egger adapted to SnuPL/0
 /// 2016/03/11 Bernhard Egger adapted to SnuPL/1
-/// 2016/03/13 Bernhard Egger assignment 1: scans SnuPL/-1
-
 ///
 /// @section license_section License
 /// Copyright (c) 2012-2016, Bernhard Egger
@@ -34,8 +32,8 @@
 /// DAMAGE.
 //------------------------------------------------------------------------------
 
-#ifndef __SnuPL1_SCANNER_H__
-#define __SnuPL1_SCANNER_H__
+#ifndef __SnuPL_SCANNER_H__
+#define __SnuPL_SCANNER_H__
 
 #include <istream>
 #include <ostream>
@@ -45,44 +43,49 @@
 using namespace std;
 
 //------------------------------------------------------------------------------
-/// @brief SnuPL/1 token type
+/// @brief SnuPL/0 token type
 ///
-/// each member of this enumeration represents a token in SnuPL/1
+/// each member of this enumeration represents a token in SnuPL/0
 ///
 enum EToken {
-  tChar,                            ///< a single quoted character
-  tString,                          ///< a double quoted string
+  tIdent=0,                         ///< ident
+  tNumber,                          ///< number
+  tBoolConst,                       ///< boolean constant
+  tCharConst,                       ///< character constant
+  tString,                          ///< string constant
   tPlusMinus,                       ///< '+' or '-'
+  tMulDiv,                          ///< '*' or '/'
   tOr,                              ///< '||'
-  tMulDivAnd,                       ///< '*' or '/' or '&&'
+  tAnd,                             ///< '&&'
   tNot,                             ///< '!'
   tRelOp,                           ///< relational operator
   tAssign,                          ///< assignment operator
+  tComma,                           ///< a comma
   tSemicolon,                       ///< a semicolon
   tColon,                           ///< a colon
-  tComma,                           ///< a comma
   tDot,                             ///< a dot
-  tLSqBrak,                         ///< a left square bracket
-  tRSqBrak,                         ///< a right square bracket
+  tLParens,                         ///< a left parenthesis
+  tRParens,                         ///< a right parenthesis
   tLBrak,                           ///< a left bracket
   tRBrak,                           ///< a right bracket
-  tNumber,                          ///< a number
-  tIdent,                           ///< an identifier
-  tModule,                          ///< a keyword 'module'
-  tBegin,                           ///< a keyword 'begin'
-  tEnd,                             ///< a keyword 'end'
-  tBoolean,                         ///< a boolean value keyword
-  tBaseType,                        ///< a basetype keyword
-  tIf,                              ///< a keyword 'if'
-  tThen,                            ///< a keyword 'then'
-  tElse,                            ///< a keyword 'else'
-  tWhile,                           ///< a keyword 'while'
-  tDo,                              ///< a keyword 'do'
-  tReturn,                          ///< a keyword 'return'
-  tVar,                             ///< a keyword 'var'
-  tProcedure,                       ///< a keyword 'procedure'
-  tFunction,                        ///< a keyword 'function'
 
+  tModule,                          ///< 'module'
+  tProcedure,                       ///< 'procedure'
+  tFunction,                        ///< 'function'
+  tVarDecl,                         ///< 'var'
+  tInteger,                         ///< 'integer'
+  tBoolean,                         ///< 'boolean'
+  tChar,                            ///< 'char'
+  tBegin,                           ///< 'begin'
+  tEnd,                             ///< 'end'
+  tIf,                              ///< 'if'
+  tThen,                            ///< 'then'
+  tElse,                            ///< 'else'
+  tWhile,                           ///< 'while'
+  tDo,                              ///< 'do'
+  tReturn,                          ///< 'return'
+
+  tComment,                         ///< comment ('// .... \n')
   tEOF,                             ///< end of file
   tIOError,                         ///< I/O error
   tUndefined,                       ///< undefined
@@ -214,7 +217,7 @@ ostream& operator<<(ostream &out, const CToken *t);
 //------------------------------------------------------------------------------
 /// @brief scanner
 ///
-/// used by CParser to scan (tokenize) SnuPL/1 code
+/// used by CParser to scan (tokenize) SnuPL/0 code
 ///
 class CScanner {
   public:
@@ -270,7 +273,7 @@ class CScanner {
     void NextToken(void);
 
     /// @brief store the current position of the input stream internally
-    void RecordStreamPosition(void);
+    void RecordStreamPosition();
 
     /// @brief return the previously recorded input stream position
     ///
@@ -312,39 +315,34 @@ class CScanner {
     /// @retval false character is not white space
     bool IsWhite(char c) const;
 
-    /// @brief check if a character is a digit
+    /// @brief check if a character is an alphabetic character (a-z, A-Z)
     ///
     /// @param c character
-    /// @retval true character is a digit
-    /// @retval false character is not a digit
-    bool IsDigit(char c) const;
+    /// @retval true character is alphabetic
+    /// @retval false character is not alphabetic
+    bool IsAlpha(char c) const;
 
-    /// @brief check if a character is a letter
+    /// @brief check if a character is an numeric character (0-9)
     ///
     /// @param c character
-    /// @retval true character is a letter
-    /// @retval false character is not a letter
-    bool IsLetter(char c) const;
+    /// @retval true character is numeric
+    /// @retval false character is not numeric
+    bool IsNum(char c) const;
 
-    /// @brief check if a character is printable (0x20 - 0x7F)
+    /// @brief check if a character is a valid ID character
     ///
     /// @param c character
-    /// @retval true character is printable
-    /// @retval false character is not printable
-    bool IsPrintable(char c) const;
+    /// @retval true character is valid as an ID character
+    /// @retval false character is not valid in an ID
+    bool IsIDChar(char c) const;
 
-    /// @brief check if a character is an escaping sequence character (0, t, n, \, ', ")
+    /// @brief parse a character or string constant
     ///
-    /// @param c character
-    /// @retval true character is an escaping sequence character
-    /// @retval false character is not an escaping sequence character
-    bool IsEscapeSequenceChar(char c) const;
-
-    /// @brief unescape the escape sequence character (0, t, n, \, ', ")
-    ///
-    /// @param c character
-    /// @retval char unescaped character
-    char Unescape(char c) const;
+    /// @param &tval token value
+    /// @param type  token type (tCharConst / tString)
+    /// @retval token type if the character/string has been successfully parsed
+    /// @retval tUndefined otherwise (tval set accordingly)
+    EToken GetCharConst(string &tval, EToken type);
 
     /// @}
 
@@ -362,4 +360,4 @@ class CScanner {
 };
 
 
-#endif // __SnuPL1_SCANNER_H__
+#endif // __SnuPL_SCANNER_H__

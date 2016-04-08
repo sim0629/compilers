@@ -4,8 +4,8 @@
 /// @section changelog Change Log
 /// 2012/09/14 Bernhard Egger created
 /// 2013/03/07 Bernhard Egger adapted to SnuPL/0
-/// 2014/09/10 Bernhard Egger assignment 1: scans SnuPL/-1
-/// 2016/03/13 Bernhard Egger assignment 1: adapted to modified SnuPL/-1 syntax
+/// 2016/03/11 Bernhard Egger adapted to SnuPL/1
+/// 2016/03/13 Bernhard Egger assignment 1: scans SnuPL/-1
 ///
 /// @section license_section License
 /// Copyright (c) 2012-2016, Bernhard Egger
@@ -233,6 +233,31 @@ string CToken::escape(const string text)
   return s;
 }
 
+string CToken::unescape(const string text)
+{
+  const char *t = text.c_str();
+  string s;
+
+  while (*t != '\0') {
+    if (*t == '\\') {
+      switch (*++t) {
+        case 'n': s += "\n";  break;
+        case 't': s += "\t";  break;
+        case '0': s += "\0";  break;
+        case '\'': s += "'";  break;
+        case '"': s += "\""; break;
+        case '\\': s += "\\"; break;
+        default :  s += '?';
+      }
+    } else {
+      s += *t;
+    }
+    t++;
+  }
+
+  return s;
+}
+
 ostream& operator<<(ostream &out, const CToken &t)
 {
   return t.print(out);
@@ -310,7 +335,7 @@ void CScanner::NextToken()
   _token = Scan();
 }
 
-void CScanner::RecordStreamPosition()
+void CScanner::RecordStreamPosition(void)
 {
   _saved_line = _line;
   _saved_char = _char;
@@ -500,6 +525,7 @@ CToken* CScanner::Scan()
         tokval += "'";
       }
       break;
+
   }
 
   return NewToken(token, tokval);
