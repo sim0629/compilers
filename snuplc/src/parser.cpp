@@ -671,9 +671,13 @@ const CType *CParser::type_()
   while (_scanner->Peek().GetType() == tLSqBrak) {
     Consume(tLSqBrak);
 
-    CToken dim;
-    Consume(tNumber, &dim);
-    ret = CTypeManager::Get()->GetArray(stoi(dim.GetValue()), ret);
+    int size = CArrayType::OPEN;
+    if (_scanner->Peek().GetType() != tRSqBrak) {
+      CToken stoken;
+      Consume(tNumber, &stoken);
+      size = stoi(stoken.GetValue());
+    }
+    ret = CTypeManager::Get()->GetArray(size, ret);
     Consume(tRSqBrak);
   }
   return ret;
