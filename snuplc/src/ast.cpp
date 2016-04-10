@@ -1269,6 +1269,8 @@ string CAstConstant::GetValueStr(void) const
 
   if (GetType() == CTypeManager::Get()->GetBool()) {
     out << (_value == 0 ? "false" : "true");
+  } else if (GetType() == CTypeManager::Get()->GetChar()) {
+    out << '\'' << GetToken().GetValue() << '\'';
   } else {
     out << dec << _value;
   }

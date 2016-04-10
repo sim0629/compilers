@@ -101,12 +101,20 @@ class CParser {
 
     CAstStatAssign*   assignment(CAstScope *s);
 
+    CAstFunctionCall* subroutineCallForFunction(CAstScope *s);
+
     CAstExpression*   expression(CAstScope *s);
     CAstExpression*   simpleexpr(CAstScope *s);
     CAstExpression*   term(CAstScope *s);
     CAstExpression*   factor(CAstScope *s);
 
+    CAstDesignator*   qualident(CAstScope *s);
+
     CAstConstant*     number(void);
+    CAstConstant*     boolean(void);
+    CAstConstant*     char_(void);
+    CAstStringConstant*
+                      string_(CAstScope *s);
 
     /// @}
 

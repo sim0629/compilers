@@ -196,10 +196,45 @@ CAstStatAssign* CParser::assignment(CAstScope *s)
   return new CAstStatAssign(t, lhs, rhs);
 }
 
+CAstFunctionCall* CParser::subroutineCallForFunction(CAstScope *s)
+{
+  CToken t;
+  CSymtab *tab;
+  const CSymbol *sym;
+  CAstFunctionCall *fc;
+
+  Consume(tIdent, &t);
+
+  tab = s->GetSymbolTable();
+  sym = tab->FindSymbol(t.GetValue(), sGlobal);
+
+  if (sym == NULL)
+    SetError(t, "undefined identifier.");
+  else if (sym->GetSymbolType() != stProcedure)
+    SetError(t, "invalid procedure/function identifier.");
+
+  fc = new CAstFunctionCall(t, static_cast<const CSymProc *>(sym));
+
+  Consume(tLBrak);
+
+  if (_scanner->Peek().GetType() != tRBrak) {
+    while (true) {
+      fc->AddArg(expression(s));
+
+      if (_scanner->Peek().GetType() == tComma) Consume(tComma);
+      else break;
+    }
+  }
+
+  Consume(tRBrak);
+
+  return fc;
+}
+
 CAstExpression* CParser::expression(CAstScope* s)
 {
   //
-  // expression ::= simpleexpr [ relOp simpleexpression ].
+  // expression ::= simpleexpr [ relOp simpleexpr ].
   //
   CToken t;
   EOperation relop;
@@ -213,6 +248,10 @@ CAstExpression* CParser::expression(CAstScope* s)
 
     if (t.GetValue() == "=")       relop = opEqual;
     else if (t.GetValue() == "#")  relop = opNotEqual;
+    else if (t.GetValue() == "<")  relop = opLessThan;
+    else if (t.GetValue() == "<=") relop = opLessEqual;
+    else if (t.GetValue() == ">")  relop = opBiggerThan;
+    else if (t.GetValue() == ">=") relop = opBiggerEqual;
     else SetError(t, "invalid relation.");
 
     return new CAstBinaryOp(t, relop, left, right);
@@ -224,49 +263,73 @@ CAstExpression* CParser::expression(CAstScope* s)
 CAstExpression* CParser::simpleexpr(CAstScope *s)
 {
   //
-  // simpleexpr ::= term { termOp term }.
+  // simpleexpr ::= ["+"|"-"] term { termOp term }.
   //
+  CAstUnaryOp *u = NULL;
+  CToken unaryOp;
   CAstExpression *n = NULL;
+  EToken et;
+
+  et = _scanner->Peek().GetType();
+
+  if (et == tPlusMinus) {
+    Consume(tPlusMinus, &unaryOp);
+  }
 
   n = term(s);
 
-  while (_scanner->Peek().GetType() == tPlusMinus) {
-    CToken t;
+  while (true) {
+    CToken termOp;
     CAstExpression *l = n, *r;
+    EOperation oper;
 
-    Consume(tPlusMinus, &t);
+    et = _scanner->Peek().GetType();
+    if (et == tPlusMinus) {
+      Consume(tPlusMinus, &termOp);
+      oper = termOp.GetValue() == "+" ? opAdd : opSub;
+    } else if (et == tOr) {
+      Consume(tOr, &termOp);
+      oper = opOr;
+    }
+    else break;
 
     r = term(s);
 
-    n = new CAstBinaryOp(t, t.GetValue() == "+" ? opAdd : opSub, l, r);
+    n = new CAstBinaryOp(termOp, oper, l, r);
   }
 
-
-  return n;
+  if (unaryOp.GetType() == tUndefined) return n;
+  return new CAstUnaryOp(unaryOp, unaryOp.GetValue() == "+" ? opPos : opNeg, n);
 }
 
 CAstExpression* CParser::term(CAstScope *s)
 {
   //
-  // term ::= factor { ("*"|"/") factor }.
+  // term ::= factor { factOp factor }.
   //
   CAstExpression *n = NULL;
+  EToken et;
 
   n = factor(s);
 
-  EToken tt = _scanner->Peek().GetType();
+  et = _scanner->Peek().GetType();
 
-  while ((tt == tMulDivAnd)) {
+  while (et == tMulDivAnd) {
     CToken t;
     CAstExpression *l = n, *r;
+    EOperation oper;
 
     Consume(tMulDivAnd, &t);
 
+    if (t.GetValue() == "*")      oper = opMul;
+    else if (t.GetValue() == "/") oper = opDiv;
+    else                          oper = opAnd;
+
     r = factor(s);
 
-    n = new CAstBinaryOp(t, t.GetValue() == "*" ? opMul : opDiv, l, r); // TODO: tAnd
+    n = new CAstBinaryOp(t, oper, l, r);
 
-    tt = _scanner->Peek().GetType();
+    et = _scanner->Peek().GetType();
   }
 
   return n;
@@ -275,26 +338,49 @@ CAstExpression* CParser::term(CAstScope *s)
 CAstExpression* CParser::factor(CAstScope *s)
 {
   //
-  // factor ::= number | "(" expression ")"
-  //
-  // FIRST(factor) = { tNumber, tLBrak }
+  // factor ::= qualident | number | boolean | char | string |
+  //            "(" expression ")" | subroutineCall | "!" factor.
   //
 
   CToken t;
   EToken tt = _scanner->Peek().GetType();
-  CAstExpression *unary = NULL, *n = NULL;
+  CAstExpression *n = NULL;
 
   switch (tt) {
-    // factor ::= number
     case tNumber:
       n = number();
       break;
 
-    // factor ::= "(" expression ")"
+    case tBoolean:
+      n = boolean();
+      break;
+
+    case tChar:
+      n = char_();
+      break;
+
+    case tString:
+      n = string_(s);
+      break;
+
     case tLBrak:
       Consume(tLBrak);
       n = expression(s);
       Consume(tRBrak);
+      break;
+
+    case tNot:
+      Consume(tNot, &t);
+      n = factor(s);
+      n = new CAstUnaryOp(t, opNot, n);
+      break;
+
+    case tIdent:
+      if (_scanner->Peek().GetType() == tLBrak) {
+        n = subroutineCallForFunction(s);
+      } else {
+        n = qualident(s);
+      }
       break;
 
     default:
@@ -304,6 +390,16 @@ CAstExpression* CParser::factor(CAstScope *s)
   }
 
   return n;
+}
+
+CAstDesignator* CParser::qualident(CAstScope *s)
+{
+  CToken t;
+
+  Consume(tIdent, &t);
+  SetError(t, "not implemented.");
+
+  return NULL;
 }
 
 CAstConstant* CParser::number(void)
@@ -325,3 +421,31 @@ CAstConstant* CParser::number(void)
   return new CAstConstant(t, CTypeManager::Get()->GetInt(), v);
 }
 
+CAstConstant *CParser::boolean(void)
+{
+  CToken t;
+
+  Consume(tBoolean, &t);
+
+  return new CAstConstant(t, CTypeManager::Get()->GetBool(), t.GetValue() == "true");
+}
+
+CAstConstant *CParser::char_(void)
+{
+  CToken t;
+  string v;
+
+  Consume(tChar, &t);
+  v = CToken::unescape(t.GetValue());
+
+  return new CAstConstant(t, CTypeManager::Get()->GetChar(), v[0]);
+}
+
+CAstStringConstant *CParser::string_(CAstScope *s)
+{
+  CToken t;
+
+  Consume(tString, &t);
+
+  return new CAstStringConstant(t, t.GetValue(), s);
+}
