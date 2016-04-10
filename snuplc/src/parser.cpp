@@ -225,16 +225,68 @@ CAstStatement* CParser::statSequence(CAstScope *s)
 CAstStatAssign* CParser::assignment(CAstScope *s)
 {
   //
-  // assignment ::= number ":=" expression.
+  // assignment ::= qualident ":=" expression.
   //
   CToken t;
 
-  CAstConstant *lhs = number();
+  CAstDesignator *lhs = qualident(s);
   Consume(tAssign, &t);
 
   CAstExpression *rhs = expression(s);
 
   return new CAstStatAssign(t, lhs, rhs);
+}
+
+CAstStatIf* CParser::ifStatement(CAstScope *s)
+{
+  CToken t;
+  CAstExpression *cond;
+  CAstStatement *ifBody, *elseBody = NULL;
+
+  Consume(tIf, &t);
+  Consume(tLBrak);
+  cond = expression(s);
+  Consume(tRBrak);
+  Consume(tThen);
+  ifBody = statSequence(s);
+  if (_scanner->Peek().GetType() == tElse) {
+    Consume(tElse);
+    elseBody = statSequence(s);
+  }
+  Consume(tEnd);
+
+  return new CAstStatIf(t, cond, ifBody, elseBody);
+}
+
+CAstStatWhile* CParser::whileStatement(CAstScope *s)
+{
+  CToken t;
+  CAstExpression *cond;
+  CAstStatement *body;
+
+  Consume(tWhile);
+  Consume(tLBrak);
+  cond = expression(s);
+  Consume(tRBrak);
+  Consume(tDo);
+  body = statSequence(s);
+  Consume(tEnd);
+
+  return new CAstStatWhile(t, cond, body);
+}
+
+CAstStatReturn* CParser::returnStatement(CAstScope *s)
+{
+  CToken t;
+  EToken et;
+
+  Consume(tReturn);
+  et = _scanner->Peek().GetType();
+
+  if (et == tEnd || et == tElse || et == tSemicolon)
+    return new CAstStatReturn(t, s, NULL);
+  else
+    return new CAstStatReturn(t, s, expression(s));
 }
 
 CAstFunctionCall* CParser::subroutineCallForFunction(CAstScope *s)
