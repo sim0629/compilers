@@ -140,11 +140,11 @@ CAstModule* CParser::module(void)
   Consume(tSemicolon);
 
   auto m = new CAstModule(moduleToken, nameToken.GetValue());
+  auto symtab = m->GetSymbolTable();
 
   if (_scanner->Peek().GetType() == tVar) {
     Consume(tVar);
 
-    auto symtab = m->GetSymbolTable();
     for (auto &&var : varDeclSequence()) {
       if (!symtab->AddSymbol(m->CreateVar(var.first.GetValue(), var.second))) {
         SetDuplicatedVariableError(var.first);
@@ -157,6 +157,10 @@ CAstModule* CParser::module(void)
     if (type != tProcedure && type != tFunction) break;
 
     auto pf = subroutineDecl(m, type == tFunction);
+    if (!symtab->AddSymbol(pf->GetSymbol())) {
+      CToken t = pf->GetToken();
+      SetError(t, "duplicate procedure/function declaration '" + t.GetValue() + "'.");
+    }
   }
 
   Consume(tBegin);
