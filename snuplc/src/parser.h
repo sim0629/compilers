@@ -111,6 +111,7 @@ class CParser {
     CAstStatReturn*   returnStatement(CAstScope *s);
 
     CAstFunctionCall* subroutineCallForFunction(CAstScope *s);
+    CAstStatCall*     subroutineCallForProcedure(CAstScope *s);
 
     CAstExpression*   expression(CAstScope *s);
     CAstExpression*   simpleexpr(CAstScope *s);

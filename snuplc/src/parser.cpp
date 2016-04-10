@@ -324,6 +324,12 @@ CAstFunctionCall* CParser::subroutineCallForFunction(CAstScope *s)
   return fc;
 }
 
+CAstStatCall* CParser::subroutineCallForProcedure(CAstScope *s)
+{
+  CAstFunctionCall *fc = subroutineCallForFunction(s);
+  return new CAstStatCall(fc->GetToken(), fc);
+}
+
 CAstExpression* CParser::expression(CAstScope* s)
 {
   //
