@@ -122,7 +122,52 @@ void CParser::InitSymbolTable(CSymtab *s)
 {
   CTypeManager *tm = CTypeManager::Get();
 
-  // TODO: add predefined functions here
+  {
+    auto DIM = new CSymProc("DIM", tm->GetInt());
+    auto array = new CSymParam(0, "array", tm->GetArray(CArrayType::OPEN, tm->GetNull()));
+    auto dimension = new CSymParam(1, "dimension", tm->GetInt());
+    DIM->AddParam(array);
+    DIM->AddParam(dimension);
+    s->AddSymbol(DIM);
+  }
+  {
+    auto ReadChar = new CSymProc("ReadChar", tm->GetChar());
+    s->AddSymbol(ReadChar);
+  }
+  {
+    auto WriteChar = new CSymProc("WriteChar", tm->GetNull());
+    auto c = new CSymParam(0, "c", tm->GetChar());
+    WriteChar->AddParam(c);
+    s->AddSymbol(WriteChar);
+  }
+  {
+    auto ReadInt = new CSymProc("ReadInt", tm->GetInt());
+    s->AddSymbol(ReadInt);
+  }
+  {
+    auto ReadStr = new CSymProc("ReadStr", tm->GetInt());
+    auto str = new CSymParam(0, "str", tm->GetArray(CArrayType::OPEN, tm->GetChar()));
+    ReadStr->AddParam(str);
+    s->AddSymbol(ReadStr);
+  }
+  {
+    auto Write = new CSymProc("Write", tm->GetNull());
+    auto str = new CSymParam(0, "str", tm->GetArray(CArrayType::OPEN, tm->GetChar()));
+    Write->AddParam(str);
+    s->AddSymbol(Write);
+  }
+  {
+    auto WriteLn = new CSymProc("WriteLn", tm->GetNull());
+    auto str = new CSymParam(0, "str", tm->GetArray(CArrayType::OPEN, tm->GetChar()));
+    WriteLn->AddParam(str);
+    s->AddSymbol(WriteLn);
+  }
+  {
+    auto WriteInt = new CSymProc("WriteInt", tm->GetNull());
+    auto x = new CSymParam(0, "x", tm->GetInt());
+    WriteInt->AddParam(x);
+    s->AddSymbol(WriteInt);
+  }
 }
 
 CAstModule* CParser::module(void)
@@ -141,6 +186,8 @@ CAstModule* CParser::module(void)
 
   auto m = new CAstModule(moduleToken, nameToken.GetValue());
   auto symtab = m->GetSymbolTable();
+
+  InitSymbolTable(symtab);
 
   if (_scanner->Peek().GetType() == tVar) {
     Consume(tVar);
