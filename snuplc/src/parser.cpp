@@ -613,7 +613,8 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
 
   if (_scanner->Peek().GetType() == tLBrak) {
     Consume(tLBrak);
-    params = varDeclSequence();
+    if (_scanner->Peek().GetType() != tRBrak)
+      params = varDeclSequence();
     Consume(tRBrak);
   }
 
