@@ -36,6 +36,7 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
 using namespace std;
 
 
@@ -481,6 +482,7 @@ class CTypeManager {
     const CCharType*    GetChar(void) const;
     const CBoolType*    GetBool(void) const;
     const CPointerType* GetVoidPtr(void) const;
+    const CType*        GetFromName(const string &name) const;
 
     /// @}
 

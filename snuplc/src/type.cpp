@@ -292,6 +292,14 @@ const CBoolType* CTypeManager::GetBool(void) const
   return _boolean;
 }
 
+const CType* CTypeManager::GetFromName(const string &name) const
+{
+  if (name == "boolean") return GetBool();
+  if (name == "char") return GetChar();
+  if (name == "integer") return GetInt();
+  return nullptr;
+}
+
 const CPointerType* CTypeManager::GetVoidPtr(void) const
 {
   return _voidptr;
