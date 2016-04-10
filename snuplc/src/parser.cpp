@@ -488,11 +488,34 @@ CAstExpression* CParser::factor(CAstScope *s)
 CAstDesignator* CParser::qualident(CAstScope *s)
 {
   CToken t;
-
   Consume(tIdent, &t);
-  SetError(t, "not implemented.");
 
-  return NULL;
+  auto symtable = s->GetSymbolTable();
+  auto symbol = symtable->FindSymbol(t.GetValue());
+  if (symbol == nullptr) {
+    SetError(t, "undefined identifier.");
+  } else if (symbol->GetSymbolType() == stProcedure) {
+    SetError(t, "designator expected.");
+  }
+
+  CAstDesignator *ret;
+
+  if (_scanner->Peek().GetType() == tLSqBrak) {
+    Consume(tLSqBrak);
+    auto arrDesg = new CAstArrayDesignator(t, symbol);
+    for (;;) {
+      arrDesg->AddIndex(expression(s));
+      Consume(tRSqBrak);
+      if (_scanner->Peek().GetType() != tLSqBrak)
+        break;
+      Consume(tLSqBrak);
+    }
+    ret = arrDesg;
+  } else {
+    ret = new CAstDesignator(t, symbol);
+  }
+
+  return ret;
 }
 
 CAstConstant* CParser::number(void)
