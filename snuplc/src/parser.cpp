@@ -179,44 +179,44 @@ CAstModule* CParser::module(void)
 
 CAstStatement* CParser::statSequence(CAstScope *s)
 {
-  //
-  // statSequence ::= [ statement { ";" statement } ].
-  // statement ::= assignment.
-  // FIRST(statSequence) = { tNumber }
-  // FOLLOW(statSequence) = { tDot }
-  //
-  CAstStatement *head = NULL;
+  CAstStatement *head = nullptr;
+  CAstStatement *tail = nullptr;
 
-  EToken tt = _scanner->Peek().GetType();
-  if (!(tt == tDot)) {
-    CAstStatement *tail = NULL;
+  for (;;) {
+    CToken t;
+    EToken tt = _scanner->Peek().GetType();
+    CAstStatement *st = nullptr;
 
-    do {
-      CToken t;
-      EToken tt = _scanner->Peek().GetType();
-      CAstStatement *st = NULL;
-
-      switch (tt) {
-        // statement ::= assignment
-        case tNumber:
+    switch (tt) {
+      case tIf:
+        st = ifStatement(s);
+        break;
+      case tWhile:
+        st = whileStatement(s);
+        break;
+      case tReturn:
+        st = returnStatement(s);
+        break;
+      case tIdent:
+        Consume(tIdent, &t);
+        if (_scanner->Peek().GetType() == tAssign) {
           st = assignment(s);
-          break;
+        } else {
+          st = subroutineCallForProcedure(s);
+        }
+        break;
+      default:
+        break;
+    }
 
-        default:
-          SetError(_scanner->Peek(), "statement expected.");
-          break;
-      }
+    if (st == nullptr) break;
 
-      assert(st != NULL);
-      if (head == NULL) head = st;
-      else tail->SetNext(st);
-      tail = st;
+    if (head == nullptr) head = st;
+    else tail->SetNext(st);
+    tail = st;
 
-      tt = _scanner->Peek().GetType();
-      if (tt == tDot) break;
-
-      Consume(tSemicolon);
-    } while (!_abort);
+    if (_scanner->Peek().GetType() != tSemicolon) break;
+    Consume(tSemicolon);
   }
 
   return head;
