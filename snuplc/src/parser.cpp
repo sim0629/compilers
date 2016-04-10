@@ -200,9 +200,9 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       case tIdent:
         Consume(tIdent, &t);
         if (_scanner->Peek().GetType() == tAssign) {
-          st = assignment(s);
+          st = assignment(t, s);
         } else {
-          st = subroutineCallForProcedure(s);
+          st = subroutineCallForProcedure(t, s);
         }
         break;
       default:
@@ -222,14 +222,13 @@ CAstStatement* CParser::statSequence(CAstScope *s)
   return head;
 }
 
-CAstStatAssign* CParser::assignment(CAstScope *s)
+CAstStatAssign* CParser::assignment(CToken t, CAstScope *s)
 {
   //
   // assignment ::= qualident ":=" expression.
   //
-  CToken t;
 
-  CAstDesignator *lhs = qualident(s);
+  CAstDesignator *lhs = qualident(t, s);
   Consume(tAssign, &t);
 
   CAstExpression *rhs = expression(s);
@@ -289,14 +288,11 @@ CAstStatReturn* CParser::returnStatement(CAstScope *s)
     return new CAstStatReturn(t, s, expression(s));
 }
 
-CAstFunctionCall* CParser::subroutineCallForFunction(CAstScope *s)
+CAstFunctionCall* CParser::subroutineCallForFunction(CToken t, CAstScope *s)
 {
-  CToken t;
   CSymtab *tab;
   const CSymbol *sym;
   CAstFunctionCall *fc;
-
-  Consume(tIdent, &t);
 
   tab = s->GetSymbolTable();
   sym = tab->FindSymbol(t.GetValue(), sGlobal);
@@ -324,9 +320,9 @@ CAstFunctionCall* CParser::subroutineCallForFunction(CAstScope *s)
   return fc;
 }
 
-CAstStatCall* CParser::subroutineCallForProcedure(CAstScope *s)
+CAstStatCall* CParser::subroutineCallForProcedure(CToken t, CAstScope *s)
 {
-  CAstFunctionCall *fc = subroutineCallForFunction(s);
+  CAstFunctionCall *fc = subroutineCallForFunction(t, s);
   return new CAstStatCall(fc->GetToken(), fc);
 }
 
@@ -475,10 +471,11 @@ CAstExpression* CParser::factor(CAstScope *s)
       break;
 
     case tIdent:
+      Consume(tIdent, &t);
       if (_scanner->Peek().GetType() == tLBrak) {
-        n = subroutineCallForFunction(s);
+        n = subroutineCallForFunction(t, s);
       } else {
-        n = qualident(s);
+        n = qualident(t, s);
       }
       break;
 
@@ -491,11 +488,8 @@ CAstExpression* CParser::factor(CAstScope *s)
   return n;
 }
 
-CAstDesignator* CParser::qualident(CAstScope *s)
+CAstDesignator* CParser::qualident(CToken t, CAstScope *s)
 {
-  CToken t;
-  Consume(tIdent, &t);
-
   auto symtable = s->GetSymbolTable();
   auto symbol = symtable->FindSymbol(t.GetValue());
   if (symbol == nullptr) {
