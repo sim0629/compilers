@@ -199,10 +199,10 @@ CAstStatement* CParser::statSequence(CAstScope *s)
         break;
       case tIdent:
         Consume(tIdent, &t);
-        if (_scanner->Peek().GetType() == tAssign) {
-          st = assignment(t, s);
-        } else {
+        if (_scanner->Peek().GetType() == tLBrak) {
           st = subroutineCallForProcedure(t, s);
+        } else {
+          st = assignment(t, s);
         }
         break;
       default:
