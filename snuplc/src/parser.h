@@ -75,6 +75,11 @@ class CParser {
     ///@}
 
   private:
+    /// @brief sets duplicated variable error
+    /// @param t token causing the error
+    /// @param message human-readable error message
+    inline void SetDuplicatedVariableError(CToken t);
+
     /// @brief sets the token causing a parse error along with a message
     /// @param t token causing the error
     /// @param message human-readable error message
@@ -107,6 +112,13 @@ class CParser {
     CAstExpression*   factor(CAstScope *s);
 
     CAstConstant*     number(void);
+
+    vector<pair<CToken, const CType *>>
+                      varDeclSequence();
+
+    CAstProcedure*    subroutineDecl(CAstScope *s, bool isFunc);
+    const CType *     type_();
+
 
     /// @}
 

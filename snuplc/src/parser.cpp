@@ -43,6 +43,7 @@
 #include <exception>
 
 #include "parser.h"
+#include "type.h"
 using namespace std;
 
 
@@ -88,6 +89,11 @@ string CParser::GetErrorMessage(void) const
   else return "";
 }
 
+inline void CParser::SetDuplicatedVariableError(CToken t)
+{
+  SetError(t, "duplicate variable declaration '" + t.GetValue() + "'.");
+}
+
 void CParser::SetError(CToken t, const string message)
 {
   _error_token = t;
@@ -122,16 +128,51 @@ void CParser::InitSymbolTable(CSymtab *s)
 CAstModule* CParser::module(void)
 {
   //
-  // module ::= statSequence  ".".
+  // module ::= "module" ident ";" varDeclaration { subroutineDecl }
+  //            "begin" statSewquence "end" ident ".".
   //
-  CToken dummy;
-  CAstModule *m = new CAstModule(dummy, "placeholder");
-  CAstStatement *statseq = NULL;
 
-  statseq = statSequence(m);
-  Consume(tDot);
+  CToken moduleToken;
+  CToken nameToken;
 
+  Consume(tModule, &moduleToken);
+  Consume(tIdent, &nameToken);
+  Consume(tSemicolon);
+
+  auto m = new CAstModule(moduleToken, nameToken.GetValue());
+
+  if (_scanner->Peek().GetType() == tVar) {
+    Consume(tVar);
+
+    auto symtab = m->GetSymbolTable();
+    for (auto &&var : varDeclSequence()) {
+      if (!symtab->AddSymbol(m->CreateVar(var.first.GetValue(), var.second))) {
+        SetDuplicatedVariableError(var.first);
+      }
+    }
+  }
+
+  for (;;) {
+    auto type = _scanner->Peek().GetType();
+    if (type != tProcedure && type != tFunction) break;
+
+    auto pf = subroutineDecl(m, type == tFunction);
+  }
+
+  Consume(tBegin);
+
+  auto statseq = statSequence(m);
   m->SetStatementSequence(statseq);
+
+  Consume(tEnd);
+
+  CToken endIdent;
+  Consume(tIdent, &endIdent);
+  if (nameToken.GetValue() != endIdent.GetValue()) {
+    SetError(endIdent, "module identifier mismatch ('" +
+     nameToken.GetValue() + "' != '" + endIdent.GetValue() + "').");
+  }
+  Consume(tDot);
 
   return m;
 }
@@ -325,3 +366,115 @@ CAstConstant* CParser::number(void)
   return new CAstConstant(t, CTypeManager::Get()->GetInt(), v);
 }
 
+vector<pair<CToken, const CType *>> CParser::varDeclSequence()
+{
+  vector<pair<CToken, const CType *>> ret;
+
+  do {
+    vector<CToken> idents;
+    CToken ident;
+    Consume(tIdent, &ident);
+    idents.push_back(ident);
+
+    while (_scanner->Peek().GetType() == tComma) {
+      Consume(tComma);
+      Consume(tIdent, &ident);
+      idents.push_back(ident);
+    }
+
+    Consume(tColon);
+
+    auto type = type_();
+
+    for (auto &&elem : idents) {
+      ret.emplace_back(elem, type);
+    }
+    if (_scanner->Peek().GetType() != tSemicolon)
+      break;
+
+    Consume(tSemicolon);
+  } while (_scanner->Peek().GetType() == tIdent);
+
+  return ret;
+}
+
+CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
+{
+  Consume(isFunc ? tFunction : tProcedure);
+
+  CToken nameToken;
+  Consume(tIdent, &nameToken);
+
+  vector<pair<CToken, const CType *>> params;
+
+  if (_scanner->Peek().GetType() == tLBrak) {
+    Consume(tLBrak);
+    params = varDeclSequence();
+    Consume(tRBrak);
+  }
+
+  const CType *returnType;
+
+  if (isFunc) {
+    Consume(tColon);
+    returnType = type_();
+  } else {
+    returnType = CTypeManager::Get()->GetNull();
+  }
+
+  Consume(tSemicolon);
+
+  CSymProc *symproc = new CSymProc(nameToken.GetValue(), returnType);
+  auto ret = new CAstProcedure(nameToken, nameToken.GetValue(), s, symproc);
+  auto stable = ret->GetSymbolTable();
+
+  for (int i = 0; i < params.size(); i++) {
+    auto sym = new CSymParam(i, params[i].first.GetValue(), params[i].second);
+    symproc->AddParam(sym);
+    if (!stable->AddSymbol(sym)) {
+      SetDuplicatedVariableError(params[i].first);
+    }
+  }
+
+  if (_scanner->Peek().GetType() == tVar) {
+    Consume(tVar);
+    for (auto &&local : varDeclSequence()) {
+      if (!stable->AddSymbol(ret->CreateVar(local.first.GetValue(), local.second))) {
+        SetDuplicatedVariableError(local.first);
+      }
+    }
+  }
+
+  Consume(tBegin);
+  ret->SetStatementSequence(statSequence(ret));
+  Consume(tEnd);
+
+  CToken endIdent;
+  Consume(tIdent, &endIdent);
+  if (nameToken.GetValue() != endIdent.GetValue()) {
+    SetError(endIdent, "procedure/function identifier mismatch ('" +
+     nameToken.GetValue() + "' != '" + endIdent.GetValue() + "').");
+  }
+
+  Consume(tSemicolon);
+
+  return ret;
+}
+
+const CType *CParser::type_()
+{
+  CToken basetype;
+  const CType *ret = nullptr;
+  Consume(tBaseType, &basetype);
+  ret = CTypeManager::Get()->GetFromName(basetype.GetValue());
+
+  while (_scanner->Peek().GetType() == tLSqBrak) {
+    Consume(tLSqBrak);
+
+    CToken dim;
+    Consume(tNumber, &dim);
+    ret = CTypeManager::Get()->GetArray(stoi(dim.GetValue()), ret);
+    Consume(tRSqBrak);
+  }
+  return ret;
+}
