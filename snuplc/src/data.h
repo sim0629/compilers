@@ -98,8 +98,7 @@ class CDataInitString : public CDataInitializer {
 
     /// @brief constructor
     ///
-    /// @param name symbol name (identifier)
-    /// @param type symbol type
+    /// @param data the string data
     CDataInitString(const string data);
 
     /// @}

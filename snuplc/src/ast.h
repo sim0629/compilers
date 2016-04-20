@@ -610,7 +610,7 @@ class CAstStatReturn : public CAstStatement {
     /// @{
 
     /// @param t token in input stream (used for error reporting purposes)
-    /// @param s enclosing scope (needed for type checking)
+    /// @param scope enclosing scope (needed for type checking)
     /// @param expr returned expression (or NULL)
     CAstStatReturn(CToken t, CAstScope *scope, CAstExpression *expr);
 
@@ -848,7 +848,7 @@ class CAstExpression : public CAstNode {
     /// @name constructors/destructors
     /// @{
 
-    /// @param token token in input stream (used for error reporting purposes)
+    /// @param t token in input stream (used for error reporting purposes)
     CAstExpression(CToken t);
 
     /// @}

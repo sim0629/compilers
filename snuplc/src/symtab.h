@@ -395,14 +395,14 @@ class CSymtab {
 /// @brief CSymtab output operator
 ///
 /// @param out output stream
-/// @param d reference to CSymtab
+/// @param t reference to CSymtab
 /// @retval output stream
 ostream& operator<<(ostream &out, const CSymtab &t);
 
 /// @brief CSymtab output operator
 ///
 /// @param out output stream
-/// @param d reference to CSymtab
+/// @param t reference to CSymtab
 /// @retval output stream
 ostream& operator<<(ostream &out, const CSymtab *t);
 

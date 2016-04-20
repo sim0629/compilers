@@ -77,7 +77,6 @@ class CParser {
   private:
     /// @brief sets duplicated variable error
     /// @param t token causing the error
-    /// @param message human-readable error message
     inline void SetDuplicatedVariableError(CToken t);
 
     /// @brief sets the token causing a parse error along with a message

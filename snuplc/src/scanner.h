@@ -197,14 +197,14 @@ class CToken {
 /// @brief CToken output operator
 ///
 /// @param out output stream
-/// @param d reference to CToken
+/// @param t reference to CToken
 /// @retval output stream
 ostream& operator<<(ostream &out, const CToken &t);
 
 /// @brief CToken output operator
 ///
 /// @param out output stream
-/// @param d reference to CToken
+/// @param t reference to CToken
 /// @retval output stream
 ostream& operator<<(ostream &out, const CToken *t);
 

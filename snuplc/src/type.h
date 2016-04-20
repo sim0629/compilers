@@ -125,14 +125,14 @@ class CType {
 /// @brief CType output operator
 ///
 /// @param out output stream
-/// @param d reference to CType
+/// @param t reference to CType
 /// @retval output stream
 ostream& operator<<(ostream &out, const CType &t);
 
 /// @brief CType output operator
 ///
 /// @param out output stream
-/// @param d reference to CType
+/// @param t reference to CType
 /// @retval output stream
 ostream& operator<<(ostream &out, const CType *t);
 
@@ -438,9 +438,9 @@ class CArrayType : public CType {
 
     /// @brief compare two types
     ///
-    /// CArrayType::Match() matches this type with type @t. The matching is
+    /// CArrayType::Match() matches this type with type \p t. The matching is
     /// performed recursively on each dimension down to the base type.
-    /// On each dimension, the number of elements must match or @t's dimension
+    /// On each dimension, the number of elements must match or \p t 's dimension
     /// be CArrayType::OPEN (but not vice-versa, i.e., when type matching array
     /// function arguments with function parameters, the argument must call
     /// Match() with the formal parameter as its argument.
