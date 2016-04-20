@@ -124,15 +124,27 @@ void CParser::InitSymbolTable(CSymtab *s)
 
   {
     auto DIM = new CSymProc("DIM", tm->GetInt());
-    auto array = new CSymParam(0, "array", tm->GetArray(CArrayType::OPEN, tm->GetNull()));
-    auto dimension = new CSymParam(1, "dimension", tm->GetInt());
+    auto array = new CSymParam(0, "array", tm->GetPointer(tm->GetNull()));
+    auto dim = new CSymParam(1, "dim", tm->GetInt());
     DIM->AddParam(array);
-    DIM->AddParam(dimension);
+    DIM->AddParam(dim);
     s->AddSymbol(DIM);
   }
   {
-    auto ReadChar = new CSymProc("ReadChar", tm->GetChar());
-    s->AddSymbol(ReadChar);
+    auto DOFS = new CSymProc("DOFS", tm->GetInt());
+    auto array = new CSymParam(0, "array", tm->GetPointer(tm->GetNull()));
+    DOFS->AddParam(array);
+    s->AddSymbol(DOFS);
+  }
+  {
+    auto ReadInt = new CSymProc("ReadInt", tm->GetInt());
+    s->AddSymbol(ReadInt);
+  }
+  {
+    auto WriteInt = new CSymProc("WriteInt", tm->GetNull());
+    auto i = new CSymParam(0, "i", tm->GetInt());
+    WriteInt->AddParam(i);
+    s->AddSymbol(WriteInt);
   }
   {
     auto WriteChar = new CSymProc("WriteChar", tm->GetNull());
@@ -141,32 +153,14 @@ void CParser::InitSymbolTable(CSymtab *s)
     s->AddSymbol(WriteChar);
   }
   {
-    auto ReadInt = new CSymProc("ReadInt", tm->GetInt());
-    s->AddSymbol(ReadInt);
-  }
-  {
-    auto ReadStr = new CSymProc("ReadStr", tm->GetInt());
-    auto str = new CSymParam(0, "str", tm->GetArray(CArrayType::OPEN, tm->GetChar()));
-    ReadStr->AddParam(str);
-    s->AddSymbol(ReadStr);
-  }
-  {
-    auto Write = new CSymProc("Write", tm->GetNull());
-    auto str = new CSymParam(0, "str", tm->GetArray(CArrayType::OPEN, tm->GetChar()));
-    Write->AddParam(str);
-    s->AddSymbol(Write);
+    auto WriteStr = new CSymProc("WriteStr", tm->GetNull());
+    auto str = new CSymParam(0, "string", tm->GetPointer(tm->GetArray(CArrayType::OPEN, tm->GetChar())));
+    WriteStr->AddParam(str);
+    s->AddSymbol(WriteStr);
   }
   {
     auto WriteLn = new CSymProc("WriteLn", tm->GetNull());
-    auto str = new CSymParam(0, "str", tm->GetArray(CArrayType::OPEN, tm->GetChar()));
-    WriteLn->AddParam(str);
     s->AddSymbol(WriteLn);
-  }
-  {
-    auto WriteInt = new CSymProc("WriteInt", tm->GetNull());
-    auto x = new CSymParam(0, "x", tm->GetInt());
-    WriteInt->AddParam(x);
-    s->AddSymbol(WriteInt);
   }
 }
 
