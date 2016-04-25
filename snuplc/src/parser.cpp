@@ -168,7 +168,7 @@ CAstModule* CParser::module(void)
 {
   //
   // module ::= "module" ident ";" varDeclaration { subroutineDecl }
-  //            "begin" statSewquence "end" ident ".".
+  //            "begin" statSequence "end" ident ".".
   //
 
   CToken moduleToken;
