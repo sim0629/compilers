@@ -122,6 +122,9 @@ void CParser::InitSymbolTable(CSymtab *s)
 {
   CTypeManager *tm = CTypeManager::Get();
 
+  // CParser::InitSymbolTable
+  // We add the symbols of intrinsic functions here.
+
   {
     auto DIM = new CSymProc("DIM", tm->GetInt());
     auto array = new CSymParam(0, "array", tm->GetPointer(tm->GetNull()));
@@ -181,8 +184,11 @@ CAstModule* CParser::module(void)
   auto m = new CAstModule(moduleToken, nameToken.GetValue());
   auto symtab = m->GetSymbolTable();
 
+  // InitSymbolTable must be called to insert the symbols of intrinsic functions
   InitSymbolTable(symtab);
 
+  // varDeclaration is inlined
+  // if tVar appears, varDeclSequence will follow
   if (_scanner->Peek().GetType() == tVar) {
     Consume(tVar);
 
@@ -193,6 +199,7 @@ CAstModule* CParser::module(void)
     }
   }
 
+  // Naturally we can deal with Procedure and Function in the same manner
   for (;;) {
     auto type = _scanner->Peek().GetType();
     if (type != tProcedure && type != tFunction) break;
@@ -213,6 +220,8 @@ CAstModule* CParser::module(void)
 
   CToken endIdent;
   Consume(tIdent, &endIdent);
+
+  // Semantic check: module name must match
   if (nameToken.GetValue() != endIdent.GetValue()) {
     SetError(endIdent, "module identifier mismatch ('" +
      nameToken.GetValue() + "' != '" + endIdent.GetValue() + "').");
@@ -244,6 +253,8 @@ CAstStatement* CParser::statSequence(CAstScope *s)
         break;
       case tIdent:
         Consume(tIdent, &t);
+
+        // Eliminating ambiguity: We look ahead 2 tokens
         if (_scanner->Peek().GetType() == tLBrak) {
           st = subroutineCallForProcedure(t, s);
         } else {
@@ -327,14 +338,17 @@ CAstStatReturn* CParser::returnStatement(CAstScope *s)
   Consume(tReturn);
   et = _scanner->Peek().GetType();
 
+  // return;
   if (et == tEnd || et == tElse || et == tSemicolon)
     return new CAstStatReturn(t, s, NULL);
+  // return expr;
   else
     return new CAstStatReturn(t, s, expression(s));
 }
 
 CAstFunctionCall* CParser::subroutineCallForFunction(CToken t, CAstScope *s)
 {
+  // parameter t is the result of two look-ahead
   CSymtab *tab;
   const CSymbol *sym;
   CAstFunctionCall *fc;
@@ -344,6 +358,10 @@ CAstFunctionCall* CParser::subroutineCallForFunction(CToken t, CAstScope *s)
 
   if (sym == NULL)
     SetError(t, "undefined identifier.");
+
+  // stProcedure and stFunction has same SymbolType: stProcedure
+  // so it's enough to check whether it is stProcedure.
+  // And this is a semantic check which does not need to be done in this phase :p
   else if (sym->GetSymbolType() != stProcedure)
     SetError(t, "invalid procedure/function identifier.");
 
@@ -367,7 +385,10 @@ CAstFunctionCall* CParser::subroutineCallForFunction(CToken t, CAstScope *s)
 
 CAstStatCall* CParser::subroutineCallForProcedure(CToken t, CAstScope *s)
 {
+  // Delegates the dirty-works to subroutineCallForFunction
   CAstFunctionCall *fc = subroutineCallForFunction(t, s);
+
+  // ... and just wrap with CAstStatCall. That's it.
   return new CAstStatCall(fc->GetToken(), fc);
 }
 
@@ -405,6 +426,10 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   //
   // simpleexpr ::= ["+"|"-"] term { termOp term }.
   //
+
+  // Note that we DO NOT merge a unary operator and a constant
+  // because type checker or intermediate code generator would do that
+
   CAstUnaryOp *u = NULL;
   CToken unaryOp;
   CAstExpression *n = NULL;
@@ -535,11 +560,14 @@ CAstExpression* CParser::factor(CAstScope *s)
 
 CAstDesignator* CParser::qualident(CToken t, CAstScope *s)
 {
+  // parameter t is the result of two look-ahead
+
   auto symtable = s->GetSymbolTable();
   auto symbol = symtable->FindSymbol(t.GetValue());
   if (symbol == nullptr) {
     SetError(t, "undefined identifier.");
   } else if (symbol->GetSymbolType() == stProcedure) {
+    // Another semantic check: LHS must be neither a procedure nor a function
     SetError(t, "designator expected.");
   }
 
@@ -579,6 +607,9 @@ CAstConstant* CParser::number(void)
   long long v = strtoll(t.GetValue().c_str(), NULL, 10);
   if (errno != 0) SetError(t, "invalid number.");
 
+  // We skip the integer out of range error:
+  // Type checker will do that things for us.
+
   return new CAstConstant(t, CTypeManager::Get()->GetInt(), v);
 }
 
@@ -588,6 +619,7 @@ CAstConstant *CParser::boolean(void)
 
   Consume(tBoolean, &t);
 
+  // t.GetValue() is either "true" or "false"
   return new CAstConstant(t, CTypeManager::Get()->GetBool(), t.GetValue() == "true");
 }
 
@@ -599,6 +631,7 @@ CAstConstant *CParser::char_(void)
   Consume(tChar, &t);
   v = CToken::unescape(t.GetValue());
 
+  // peek first character: char is stored in string
   return new CAstConstant(t, CTypeManager::Get()->GetChar(), v[0]);
 }
 
@@ -674,6 +707,8 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
   auto ret = new CAstProcedure(nameToken, nameToken.GetValue(), s, symproc);
   auto stable = ret->GetSymbolTable();
 
+  // Function parameters and local variables share the same scope
+  // so duplication between them is ill-formed
   for (int i = 0; i < params.size(); i++) {
     auto sym = new CSymParam(i, params[i].first.GetValue(), params[i].second);
     symproc->AddParam(sym);
@@ -695,6 +730,7 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
   ret->SetStatementSequence(statSequence(ret));
   Consume(tEnd);
 
+  // Semantic check: subroutine identifier must match
   CToken endIdent;
   Consume(tIdent, &endIdent);
   if (nameToken.GetValue() != endIdent.GetValue()) {
@@ -717,6 +753,7 @@ const CType *CParser::type_()
   while (_scanner->Peek().GetType() == tLSqBrak) {
     Consume(tLSqBrak);
 
+    // Wrap as many times as the braket shows
     int size = CArrayType::OPEN;
     if (_scanner->Peek().GetType() != tRSqBrak) {
       CToken stoken;
