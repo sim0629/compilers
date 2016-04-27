@@ -261,7 +261,14 @@ CAstStatement* CParser::statSequence(CAstScope *s)
         break;
     }
 
-    if (st == nullptr) break;
+    if (st == nullptr)
+    {
+      // This is true only if a statement is not following a semicolon
+      // After semicolon a statement must follow
+      if (head)
+        SetError(_scanner->Peek(), "statement expected.");
+      break;
+    }
 
     if (head == nullptr) head = st;
     else tail->SetNext(st);
