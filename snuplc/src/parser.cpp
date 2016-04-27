@@ -427,17 +427,18 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   // because type checker or intermediate code generator would do that
 
   CAstUnaryOp *u = NULL;
-  CToken unaryOp;
   CAstExpression *n = NULL;
   EToken et;
 
   et = _scanner->Peek().GetType();
 
   if (et == tPlusMinus) {
+    CToken unaryOp;
     Consume(tPlusMinus, &unaryOp);
+    n = new CAstUnaryOp(unaryOp, unaryOp.GetValue() == "+" ? opPos : opNeg, term(s));
+  } else {
+    n = term(s);
   }
-
-  n = term(s);
 
   while (true) {
     CToken termOp;
@@ -459,8 +460,7 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
     n = new CAstBinaryOp(termOp, oper, l, r);
   }
 
-  if (unaryOp.GetType() == tUndefined) return n;
-  return new CAstUnaryOp(unaryOp, unaryOp.GetValue() == "+" ? opPos : opNeg, n);
+  return n;
 }
 
 CAstExpression* CParser::term(CAstScope *s)
