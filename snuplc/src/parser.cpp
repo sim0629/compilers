@@ -204,11 +204,7 @@ CAstModule* CParser::module(void)
     auto type = _scanner->Peek().GetType();
     if (type != tProcedure && type != tFunction) break;
 
-    auto pf = subroutineDecl(m, type == tFunction);
-    if (!symtab->AddSymbol(pf->GetSymbol())) {
-      CToken t = pf->GetToken();
-      SetError(t, "duplicate procedure/function declaration '" + t.GetValue() + "'.");
-    }
+    subroutineDecl(m, type == tFunction);
   }
 
   Consume(tBegin);
@@ -724,6 +720,10 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
         SetDuplicatedVariableError(local.first);
       }
     }
+  }
+
+  if (!s->GetSymbolTable()->AddSymbol(symproc)) {
+    SetError(nameToken, "duplicate procedure/function declaration '" + nameToken.GetValue() + "'.");
   }
 
   Consume(tBegin);
