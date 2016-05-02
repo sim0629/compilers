@@ -165,9 +165,20 @@ CAstStatement* CAstScope::GetStatementSequence(void) const
 
 bool CAstScope::TypeCheck(CToken *t, string *msg) const
 {
-  bool result = true;
+  // First check all of the statements of itself.
+  auto s = _statseq;
+  while (s != nullptr) {
+    if (!s->TypeCheck(t, msg)) return false;
+    s = s->GetNext();
+  }
 
-  return result;
+  // Second check the children (for module).
+  for (auto &&child : _children) {
+    if (!child->TypeCheck(t, msg)) return false;
+  }
+
+  // All passed.
+  return true;
 }
 
 ostream& CAstScope::print(ostream &out, int indent) const
