@@ -1071,12 +1071,37 @@ CAstExpression* CAstSpecialOp::GetOperand(void) const
 
 bool CAstSpecialOp::TypeCheck(CToken *t, string *msg) const
 {
-  return false;
+  // Check the operand.
+  auto operand = GetOperand();
+  assert(operand != nullptr);
+  if (!operand->TypeCheck(t, msg)) return false;
+
+  // Only pointer type can be dereferenced.
+  if (GetOperation() == opDeref &&
+      !operand->GetType()->IsPointer()) {
+    if (t != nullptr) *t = GetToken();
+    if (msg != nullptr) *msg = "dereference non-pointer";
+    return false;
+  }
+
+  return true;
 }
 
 const CType* CAstSpecialOp::GetType(void) const
 {
-  return NULL;
+  // Assume TypeCheck of itself is true.
+
+  auto typeOperand = GetOperand()->GetType();
+  switch (GetOperation()) {
+    case opAddress:
+      return CTypeManager::Get()->GetPointer(typeOperand);
+    case opDeref:
+      return static_cast<const CPointerType *>(typeOperand)->GetBaseType();
+    case opCast:
+      return _type;
+    default: // invalid special operator
+      assert(false);
+  }
 }
 
 ostream& CAstSpecialOp::print(ostream &out, int indent) const
