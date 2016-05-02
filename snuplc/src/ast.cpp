@@ -953,12 +953,58 @@ CAstExpression* CAstUnaryOp::GetOperand(void) const
 
 bool CAstUnaryOp::TypeCheck(CToken *t, string *msg) const
 {
-  return true;
+  // Check the operand.
+  auto operand = GetOperand();
+
+  assert(operand != nullptr);
+
+  if (!operand->TypeCheck(t, msg)) return false;
+
+  // Get singletons for some of the base types.
+  auto typeInt = CTypeManager::Get()->GetInt();
+  auto typeBool = CTypeManager::Get()->GetBool();
+
+  auto typeOperand = operand->GetType();
+
+  switch (GetOperation()) {
+
+    // '+'/'-'
+    case opNeg: case opPos:
+      if (typeInt->Match(typeOperand)) return true;
+      break;
+
+    // '!'
+    case opNot:
+      if (typeBool->Match(typeOperand)) return true;
+      break;
+
+    // invalid unary operator
+    default:
+      assert(false);
+  }
+
+  if (t != nullptr) *t = GetToken();
+  if (msg != nullptr) {
+    ostringstream o;
+    o << "type mismatch." << endl;
+    o << "  operand: "; typeOperand->print(o, 0); o << endl;
+    *msg = o.str();
+  }
+  return false;
 }
 
 const CType* CAstUnaryOp::GetType(void) const
 {
-  return CTypeManager::Get()->GetInt();
+  // Assume TypeCheck of itself is true.
+
+  switch (GetOperation()) {
+    case opNeg: case opPos:
+      return CTypeManager::Get()->GetInt();
+    case opNot:
+      return CTypeManager::Get()->GetBool();
+    default: // invalid unary operator
+      assert(false);
+  }
 }
 
 ostream& CAstUnaryOp::print(ostream &out, int indent) const
