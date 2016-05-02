@@ -1240,6 +1240,39 @@ CAstExpression* CAstFunctionCall::GetArg(int index) const
 
 bool CAstFunctionCall::TypeCheck(CToken *t, string *msg) const
 {
+  auto symbol = GetSymbol();
+
+  // Check the number of parameters.
+  int expected = symbol->GetNParams();
+  int actual = GetNArgs();
+  if (expected != actual) {
+    if (t != nullptr) *t = GetToken();
+    if (msg != nullptr)
+      *msg = expected > actual ? "not enough arguments." : "too many arguments.";
+    return false;
+  }
+
+  // Check each parameter.
+  for (int i = 0; i < expected; i++) {
+    // Check passed argument itself.
+    auto arg = GetArg(i);
+    if (!arg->TypeCheck(t, msg)) return false;
+    // Check whether the type matches.
+    auto typeParam = symbol->GetParam(i)->GetDataType();
+    auto typeArg = arg->GetType();
+    if (!typeParam->Match(typeArg)) {
+      if (t != nullptr) *t = arg->GetToken();
+      if (msg != nullptr) {
+        ostringstream o;
+        o << "parameter " << (i + 1) << ": argument type mismatch." << endl;
+        o << "  expected "; typeParam->print(o, 0); o << endl;
+        o << "  got      "; typeArg->print(o, 0); o << endl;
+        *msg = o.str();
+      }
+      return false;
+    }
+  }
+
   return true;
 }
 
