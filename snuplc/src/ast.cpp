@@ -522,6 +522,28 @@ CAstExpression* CAstStatReturn::GetExpression(void) const
 
 bool CAstStatReturn::TypeCheck(CToken *t, string *msg) const
 {
+  // This code has been copied from Illustration 1.
+  const CType *st = GetScope()->GetType();
+  CAstExpression *e = GetExpression();
+  if (st->Match(CTypeManager::Get()->GetNull())) {
+    if (e != NULL) {
+      if (t != NULL) *t = e->GetToken();
+      if (msg != NULL) *msg = "superfluous expression after return.";
+      return false;
+    }
+  } else {
+    if (e == NULL) {
+      if (t != NULL) *t = GetToken();
+      if (msg != NULL) *msg = "expression expected after return.";
+      return false;
+    }
+    if (!e->TypeCheck(t, msg)) return false;
+    if (!st->Match(e->GetType())) {
+      if (t != NULL) *t = e->GetToken();
+      if (msg != NULL) *msg = "return type mismatch.";
+      return false;
+    }
+  }
   return true;
 }
 
