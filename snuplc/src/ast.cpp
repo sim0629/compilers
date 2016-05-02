@@ -626,6 +626,20 @@ CAstStatement* CAstStatIf::GetElseBody(void) const
 
 bool CAstStatIf::TypeCheck(CToken *t, string *msg) const
 {
+  // Check cond.
+  if (!_cond->TypeCheck(t, msg)) return false;
+
+  // cond should be boolean type.
+  if (!CTypeManager::Get()->GetBool()->Match(_cond->GetType())) {
+    if (t != nullptr) *t = GetToken();
+    if (msg != nullptr) *msg = "boolean expression expected.";
+    return false;
+  }
+
+  // Check bodies.
+  if (!_ifBody->TypeCheck(t, msg)) return false;
+  if (!_elseBody->TypeCheck(t, msg)) return false;
+
   return true;
 }
 
@@ -726,6 +740,19 @@ CAstStatement* CAstStatWhile::GetBody(void) const
 
 bool CAstStatWhile::TypeCheck(CToken *t, string *msg) const
 {
+  // Check cond.
+  if (!_cond->TypeCheck(t, msg)) return false;
+
+  // cond should be boolean type.
+  if (!CTypeManager::Get()->GetBool()->Match(_cond->GetType())) {
+    if (t != nullptr) *t = GetToken();
+    if (msg != nullptr) *msg = "boolean expression expected.";
+    return false;
+  }
+
+  // Check body.
+  if (!_body->TypeCheck(t, msg)) return false;
+
   return true;
 }
 
