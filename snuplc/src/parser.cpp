@@ -586,6 +586,7 @@ CAstDesignator* CParser::qualident(CToken t, CAstScope *s)
         break;
       Consume(tLSqBrak);
     }
+    arrDesg->IndicesComplete();
     ret = arrDesg;
   } else {
     ret = new CAstDesignator(t, symbol);
