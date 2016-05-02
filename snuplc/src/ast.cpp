@@ -809,12 +809,83 @@ CAstExpression* CAstBinaryOp::GetRight(void) const
 
 bool CAstBinaryOp::TypeCheck(CToken *t, string *msg) const
 {
-  return true;
+  // Check each operand.
+  auto lhs = GetLeft();
+  auto rhs = GetRight();
+
+  assert(lhs != nullptr && rhs != nullptr);
+
+  if (!lhs->TypeCheck(t, msg)) return false;
+  if (!rhs->TypeCheck(t, msg)) return false;
+
+  // Get singletons for the base types.
+  auto typeInt = CTypeManager::Get()->GetInt();
+  auto typeChar = CTypeManager::Get()->GetChar();
+  auto typeBool = CTypeManager::Get()->GetBool();
+
+  auto typeLHS = lhs->GetType();
+  auto typeRHS = rhs->GetType();
+
+  switch (GetOperation()) {
+
+    // Both lhs and rhs should have integer type.
+    case opAdd: case opSub:
+    case opMul: case opDiv:
+      if (typeInt->Match(typeLHS) &&
+          typeInt->Match(typeRHS)) return true;
+      break;
+
+    // Both lhs and rhs should have boolean type.
+    case opAnd: case opOr:
+      if (typeBool->Match(typeLHS) &&
+          typeBool->Match(typeRHS)) return true;
+      break;
+
+    // Both lhs and rhs should have same type.
+    case opEqual: case opNotEqual:
+      if (typeBool->Match(typeLHS) &&
+          typeBool->Match(typeRHS)) return true;
+      // break; fall through
+    case opLessThan: case opLessEqual:
+    case opBiggerThan: case opBiggerEqual:
+      if (typeChar->Match(typeLHS) &&
+          typeChar->Match(typeRHS)) return true;
+      if (typeInt->Match(typeLHS) &&
+          typeInt->Match(typeRHS)) return true;
+      break;
+
+    // invalid binary operator
+    default:
+      assert(false);
+  }
+
+  if (t != nullptr) *t = GetToken();
+  if (msg != nullptr) {
+    ostringstream o;
+    o << "type mismatch." << endl;
+    o << "  left  operand: "; typeLHS->print(o, 0); o << endl;
+    o << "  right operand: "; typeRHS->print(o, 0); o << endl;
+    *msg = o.str();
+  }
+  return false;
 }
 
 const CType* CAstBinaryOp::GetType(void) const
 {
-  return CTypeManager::Get()->GetInt();
+  // Assume TypeCheck of itself is true.
+
+  switch (GetOperation()) {
+    case opAdd: case opSub:
+    case opMul: case opDiv:
+      return CTypeManager::Get()->GetInt();
+    case opAnd: case opOr:
+    case opEqual: case opNotEqual:
+    case opLessThan: case opLessEqual:
+    case opBiggerThan: case opBiggerEqual:
+      return CTypeManager::Get()->GetBool();
+    default: // invalid binary operator
+      assert(false);
+  }
 }
 
 ostream& CAstBinaryOp::print(ostream &out, int indent) const
