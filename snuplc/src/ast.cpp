@@ -1337,16 +1337,40 @@ CAstExpression* CAstArrayDesignator::GetIndex(int index) const
 
 bool CAstArrayDesignator::TypeCheck(CToken *t, string *msg) const
 {
-  bool result = true;
-
   assert(_done);
 
-  return result;
+  // Check dimension.
+  if (GetType() == nullptr) {
+    if (t != nullptr) *t = GetToken();
+    if (msg != nullptr) *msg = "invalid array expression.";
+    return false;
+  }
+
+  // Check each indices is an integer.
+  for (int i = 0; i < GetNIndices(); i++) {
+    auto idx = GetIndex(i);
+    if (!idx->TypeCheck(t, msg)) return false;
+  }
+
+  return true;
 }
 
 const CType* CAstArrayDesignator::GetType(void) const
 {
-  return NULL;
+  // Assume TypeCheck of itself is true.
+
+  auto symbol = GetSymbol();
+  assert(symbol != nullptr);
+
+  auto type = symbol->GetDataType();
+  assert(type != nullptr);
+
+  for (int i = 0; i < GetNIndices(); i++) {
+    if (!type->IsArray()) return nullptr;
+    type = static_cast<const CArrayType *>(type)->GetInnerType();
+  }
+
+  return type;
 }
 
 ostream& CAstArrayDesignator::print(ostream &out, int indent) const
