@@ -389,6 +389,23 @@ CAstExpression* CAstStatAssign::GetRHS(void) const
 
 bool CAstStatAssign::TypeCheck(CToken *t, string *msg) const
 {
+  if (!_lhs->TypeCheck(t, msg)) return false;
+  if (!_rhs->TypeCheck(t, msg)) return false;
+
+  auto typeLHS = _lhs->GetType();
+  auto typeRHS = _rhs->GetType();
+  if (!typeLHS->Compare(typeRHS)) {
+    if (t != nullptr) *t = GetToken();
+    if (msg != nullptr) {
+      ostringstream o;
+      o << "incompatible types in assignment:" << endl;
+      o << "  LHS: "; typeLHS->print(o, 0); o << endl;
+      o << "  RHS: "; typeRHS->print(o, 0); o << endl;
+      *msg = o.str();
+    }
+    return false;
+  }
+
   return true;
 }
 
