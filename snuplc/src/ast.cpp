@@ -638,7 +638,7 @@ bool CAstStatIf::TypeCheck(CToken *t, string *msg) const
 
   // Check bodies.
   if (!_ifBody->TypeCheck(t, msg)) return false;
-  if (!_elseBody->TypeCheck(t, msg)) return false;
+  if (_elseBody && !_elseBody->TypeCheck(t, msg)) return false;
 
   return true;
 }
