@@ -1470,6 +1470,9 @@ const CType* CAstArrayDesignator::GetType(void) const
   auto type = symbol->GetDataType();
   assert(type != nullptr);
 
+  if (type->IsPointer())
+    type = static_cast<const CPointerType *>(type)->GetBaseType();
+
   for (int i = 0; i < GetNIndices(); i++) {
     if (!type->IsArray()) return nullptr;
     type = static_cast<const CArrayType *>(type)->GetInnerType();
