@@ -631,7 +631,7 @@ bool CAstStatIf::TypeCheck(CToken *t, string *msg) const
 
   // cond should be boolean type.
   if (!CTypeManager::Get()->GetBool()->Match(_cond->GetType())) {
-    if (t != nullptr) *t = GetToken();
+    if (t != nullptr) *t = _cond->GetToken();
     if (msg != nullptr) *msg = "boolean expression expected.";
     return false;
   }
@@ -745,7 +745,7 @@ bool CAstStatWhile::TypeCheck(CToken *t, string *msg) const
 
   // cond should be boolean type.
   if (!CTypeManager::Get()->GetBool()->Match(_cond->GetType())) {
-    if (t != nullptr) *t = GetToken();
+    if (t != nullptr) *t = _cond->GetToken();
     if (msg != nullptr) *msg = "boolean expression expected.";
     return false;
   }

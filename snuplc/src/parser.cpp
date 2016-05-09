@@ -338,7 +338,7 @@ CAstStatReturn* CParser::returnStatement(CAstScope *s)
   CToken t;
   EToken et;
 
-  Consume(tReturn);
+  Consume(tReturn, &t);
   et = _scanner->Peek().GetType();
 
   // return;
