@@ -768,6 +768,7 @@ const CType *CParser::type_(CToken *t, bool allowopen)
   Consume(tBaseType, &basetype);
   ret = CTypeManager::Get()->GetFromName(basetype.GetValue());
 
+  vector<int> dims;
   while (_scanner->Peek().GetType() == tLSqBrak) {
     Consume(tLSqBrak);
 
@@ -783,8 +784,13 @@ const CType *CParser::type_(CToken *t, bool allowopen)
         SetError(stoken, "array dimension outside valid range.");
       }
     }
-    ret = CTypeManager::Get()->GetArray(static_cast<int>(size), ret);
+    dims.push_back(static_cast<int>(size));
     Consume(tRSqBrak);
+  }
+
+  for (auto rit = dims.rbegin(); rit != dims.rend(); rit++)
+  {
+    ret = CTypeManager::Get()->GetArray(*rit, ret);
   }
 
   if (t) *t = basetype;
