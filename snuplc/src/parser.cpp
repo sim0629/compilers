@@ -558,7 +558,6 @@ CAstExpression* CParser::factor(CAstScope *s)
       break;
 
     default:
-      cout << "got " << _scanner->Peek() << endl;
       SetError(_scanner->Peek(), "factor expected.");
       break;
   }
