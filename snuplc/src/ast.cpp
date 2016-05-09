@@ -1052,8 +1052,13 @@ bool CAstUnaryOp::TypeCheck(CToken *t, string *msg) const
   if (t != nullptr) *t = GetToken();
   if (msg != nullptr) {
     ostringstream o;
+    switch (GetOperation()) {
+      case opNeg: o << "neg: "; break;
+      case opPos: o << "pos: "; break;
+      case opNot: o << "not: "; break;
+    }
     o << "type mismatch." << endl;
-    o << "  operand: "; typeOperand->print(o, 0); o << endl;
+    o << "  operand: "; typeOperand->print(o, 6); o << endl;
     *msg = o.str();
   }
   return false;
