@@ -1,0 +1,7 @@
+#!/bin/bash
+
+OURS=`mktemp` && \
+./snuplc/test_parser "$1" > "$OURS" && \
+THEIRS=`mktemp` && \
+./reference/3_test_parser "$1" > "$THEIRS" && \
+vimdiff "$OURS" "$THEIRS"
