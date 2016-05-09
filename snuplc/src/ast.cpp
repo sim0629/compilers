@@ -928,6 +928,15 @@ bool CAstBinaryOp::TypeCheck(CToken *t, string *msg) const
   if (t != nullptr) *t = GetToken();
   if (msg != nullptr) {
     ostringstream o;
+    switch (GetOperation()) {
+      case opAdd: o << "add: "; break;
+      case opSub: o << "sub: "; break;
+      case opMul: o << "mul: "; break;
+      case opDiv: o << "div: "; break;
+      case opAnd: o << "and: "; break;
+      case opOr:  o << "or: ";  break;
+      default: o << GetToken().GetValue() << ": "; break;
+    }
     o << "type mismatch." << endl;
     o << "  left  operand: "; typeLHS->print(o, 0); o << endl;
     o << "  right operand: "; typeRHS->print(o, 0); o << endl;
