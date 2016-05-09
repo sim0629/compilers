@@ -1446,9 +1446,15 @@ bool CAstArrayDesignator::TypeCheck(CToken *t, string *msg) const
   }
 
   // Check each indices is an integer.
+  auto typeInt = CTypeManager::Get()->GetInt();
   for (int i = 0; i < GetNIndices(); i++) {
     auto idx = GetIndex(i);
     if (!idx->TypeCheck(t, msg)) return false;
+    if (!typeInt->Compare(idx->GetType())) {
+      if (t != nullptr) *t = idx->GetToken();
+      if (msg != nullptr) *msg = "invalid array index expression.";
+      return false;
+    }
   }
 
   return true;
