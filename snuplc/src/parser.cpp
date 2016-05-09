@@ -192,7 +192,7 @@ CAstModule* CParser::module(void)
   if (_scanner->Peek().GetType() == tVar) {
     Consume(tVar);
 
-    for (auto &&var : varDeclSequence()) {
+    for (auto &&var : varDeclSequence(false)) {
       if (!symtab->AddSymbol(m->CreateVar(var.first.GetValue(), var.second))) {
         SetDuplicatedVariableError(var.first);
       }
@@ -653,7 +653,7 @@ CAstStringConstant *CParser::string_(CAstScope *s)
   return new CAstStringConstant(t, t.GetValue(), s);
 }
 
-vector<pair<CToken, const CType *>> CParser::varDeclSequence()
+vector<pair<CToken, const CType *>> CParser::varDeclSequence(bool allowopen)
 {
   vector<pair<CToken, const CType *>> ret;
 
@@ -671,7 +671,7 @@ vector<pair<CToken, const CType *>> CParser::varDeclSequence()
 
     Consume(tColon);
 
-    auto type = type_();
+    auto type = type_(nullptr, allowopen);
 
     for (auto &&elem : idents) {
       ret.emplace_back(elem, type);
@@ -734,7 +734,7 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
 
   if (_scanner->Peek().GetType() == tVar) {
     Consume(tVar);
-    for (auto &&local : varDeclSequence()) {
+    for (auto &&local : varDeclSequence(false)) {
       if (!stable->AddSymbol(ret->CreateVar(local.first.GetValue(), local.second))) {
         SetDuplicatedVariableError(local.first);
       }
@@ -762,7 +762,7 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
   return ret;
 }
 
-const CType *CParser::type_(CToken *t)
+const CType *CParser::type_(CToken *t, bool allowopen)
 {
   CToken basetype;
   const CType *ret = nullptr;
@@ -773,8 +773,8 @@ const CType *CParser::type_(CToken *t)
     Consume(tLSqBrak);
 
     // Wrap as many times as the braket shows
-    int size = CArrayType::OPEN;
-    if (_scanner->Peek().GetType() != tRSqBrak) {
+    long long size = CArrayType::OPEN;
+    if (_scanner->Peek().GetType() != tRSqBrak || allowopen == false) {
       CToken stoken;
       Consume(tNumber, &stoken);
       size = stoi(stoken.GetValue());

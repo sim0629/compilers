@@ -126,10 +126,10 @@ class CParser {
                       string_(CAstScope *s);
 
     vector<pair<CToken, const CType *>>
-                      varDeclSequence();
+                      varDeclSequence(bool allowopen = true);
 
     CAstProcedure*    subroutineDecl(CAstScope *s, bool isFunc);
-    const CType *     type_(CToken *t = nullptr);
+    const CType *     type_(CToken *t = nullptr, bool allowopen = true);
 
 
     /// @}
