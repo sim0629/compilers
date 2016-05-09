@@ -777,9 +777,14 @@ const CType *CParser::type_(CToken *t, bool allowopen)
     if (_scanner->Peek().GetType() != tRSqBrak || allowopen == false) {
       CToken stoken;
       Consume(tNumber, &stoken);
-      size = stoi(stoken.GetValue());
+      size = stoll(stoken.GetValue());
+      if (size <= 0) {
+        SetError(stoken, "postive constant expected.");
+      } else if (size >= 2147483648LL) {
+        SetError(stoken, "array dimension outside valid range.");
+      }
     }
-    ret = CTypeManager::Get()->GetArray(size, ret);
+    ret = CTypeManager::Get()->GetArray(static_cast<int>(size), ret);
     Consume(tRSqBrak);
   }
 
