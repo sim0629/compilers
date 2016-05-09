@@ -374,7 +374,12 @@ CAstFunctionCall* CParser::subroutineCallForFunction(CToken t, CAstScope *s)
 
   if (_scanner->Peek().GetType() != tRBrak) {
     while (true) {
-      fc->AddArg(expression(s));
+      auto exp = expression(s);
+      auto exp_t = exp->GetType();
+      if (exp_t != nullptr && exp_t->IsArray())
+        fc->AddArg(new CAstSpecialOp(exp->GetToken(), opAddress, exp, nullptr));
+      else
+        fc->AddArg(exp);
 
       if (_scanner->Peek().GetType() == tComma) Consume(tComma);
       else break;
@@ -714,7 +719,9 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
   // Function parameters and local variables share the same scope
   // so duplication between them is ill-formed
   for (int i = 0; i < params.size(); i++) {
-    auto sym = new CSymParam(i, params[i].first.GetValue(), params[i].second);
+    auto type = params[i].second; // Implicit ptr to array conversion
+    if (type->IsArray()) type = CTypeManager::Get()->GetPointer(type);
+    auto sym = new CSymParam(i, params[i].first.GetValue(), type);
     symproc->AddParam(sym);
     if (!stable->AddSymbol(sym)) {
       SetDuplicatedVariableError(params[i].first);
