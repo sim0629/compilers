@@ -129,7 +129,7 @@ class CParser {
                       varDeclSequence();
 
     CAstProcedure*    subroutineDecl(CAstScope *s, bool isFunc);
-    const CType *     type_();
+    const CType *     type_(CToken *t = nullptr);
 
 
     /// @}

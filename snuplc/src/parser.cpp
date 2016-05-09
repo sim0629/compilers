@@ -705,7 +705,11 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
 
   if (isFunc) {
     Consume(tColon);
-    returnType = type_();
+    CToken basetype;
+    returnType = type_(&basetype);
+    if (!returnType->IsScalar()) {
+      SetError(basetype, "invalid composite type for function.");
+    }
   } else {
     returnType = CTypeManager::Get()->GetNull();
   }
@@ -758,7 +762,7 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s, bool isFunc)
   return ret;
 }
 
-const CType *CParser::type_()
+const CType *CParser::type_(CToken *t)
 {
   CToken basetype;
   const CType *ret = nullptr;
@@ -778,5 +782,7 @@ const CType *CParser::type_()
     ret = CTypeManager::Get()->GetArray(size, ret);
     Consume(tRSqBrak);
   }
+
+  if (t) *t = basetype;
   return ret;
 }
