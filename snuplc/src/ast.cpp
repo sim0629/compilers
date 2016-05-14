@@ -1631,8 +1631,7 @@ CAstStringConstant::CAstStringConstant(CToken t, const string value,
 {
   CTypeManager *tm = CTypeManager::Get();
 
-  _type = tm->GetArray(strlen(CToken::unescape(value).c_str())+1,
-                       tm->GetChar());
+  _type = tm->GetArray(CToken::unescape(value).size()+1, tm->GetChar());
   _value = new CDataInitString(value);
 
   ostringstream o;
