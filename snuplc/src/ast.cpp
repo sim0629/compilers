@@ -394,16 +394,40 @@ bool CAstStatAssign::TypeCheck(CToken *t, string *msg) const
 
   auto typeLHS = _lhs->GetType();
   auto typeRHS = _rhs->GetType();
+  if (typeLHS->IsPointer())
+    typeLHS = static_cast<const CPointerType *>(typeLHS)->GetBaseType();
+  if (typeRHS->IsPointer())
+    typeRHS = static_cast<const CPointerType *>(typeRHS)->GetBaseType();
   if (!typeLHS->Compare(typeRHS)) {
     if (t != nullptr) *t = GetToken();
     if (msg != nullptr) {
       ostringstream o;
       o << "incompatible types in assignment:" << endl;
-      o << "  LHS: "; typeLHS->print(o, 0); o << endl;
-      o << "  RHS: "; typeRHS->print(o, 0); o << endl;
+      o << "  LHS: "; _lhs->GetType()->print(o, 0); o << endl;
+      o << "  RHS: "; _rhs->GetType()->print(o, 0); o << endl;
       *msg = o.str();
     }
     return false;
+  }
+  if (typeLHS->IsArray()) {
+    auto arr = static_cast<const CArrayType *>(typeLHS);
+
+    for (;;) {
+      if (arr->GetNElem() == CArrayType::OPEN) {
+        if (t) *t = GetToken();
+        if (msg) {
+          ostringstream o;
+          o << "assignments to open arrays are not supported." << endl;
+          o << "  LHS: "; _lhs->GetType()->print(o, 0); o << endl;
+          o << "  RHS: "; _rhs->GetType()->print(o, 0); o << endl;
+          *msg = o.str();
+        }
+        return false;
+      }
+      auto base = arr->GetBaseType();
+      if (!base->IsArray()) break;
+      arr = static_cast<const CArrayType *>(base);
+    }
   }
 
   return true;
