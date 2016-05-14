@@ -165,8 +165,7 @@ bool CPointerType::Match(const CType *t) const
 {
   if ((t == NULL) || !t->IsPointer()) return false;
 
-  const CPointerType *pt = dynamic_cast<const CPointerType*>(t);
-  assert(pt != NULL);
+  const CPointerType *pt = static_cast<const CPointerType*>(t);
 
   // match if:
   // - this is a void pointer or
@@ -237,7 +236,7 @@ const CType* CArrayType::GetBaseType(void) const
   const CType *t = GetInnerType();
   assert(t != NULL);
 
-  if (t->IsArray()) return dynamic_cast<const CArrayType*>(t)->GetBaseType();
+  if (t->IsArray()) return static_cast<const CArrayType*>(t)->GetBaseType();
   else return t;
 }
 
@@ -246,15 +245,14 @@ int CArrayType::GetNDim(void) const
   const CType *t = GetInnerType();
   assert(t != NULL);
 
-  if (t->IsArray()) return dynamic_cast<const CArrayType*>(t)->GetNDim() + 1;
+  if (t->IsArray()) return static_cast<const CArrayType*>(t)->GetNDim() + 1;
   else return 1;
 }
 
 bool CArrayType::Match(const CType *t) const
 {
   if (t->IsArray()) {
-    const CArrayType *at = dynamic_cast<const CArrayType*>(t);
-    assert(at != NULL);
+    const CArrayType *at = static_cast<const CArrayType*>(t);
 
     // match if:
     // - (this is an open array or the number of elements match) and
@@ -270,8 +268,7 @@ bool CArrayType::Match(const CType *t) const
 bool CArrayType::Compare(const CType *t) const
 {
   if (t->IsArray()) {
-    const CArrayType *at = dynamic_cast<const CArrayType*>(t);
-    assert(at != NULL);
+    const CArrayType *at = static_cast<const CArrayType*>(t);
 
     // comparison: match if
     // - the number of elements match and
