@@ -435,9 +435,6 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   // simpleexpr ::= ["+"|"-"] term { termOp term }.
   //
 
-  // Note that we DO NOT merge a unary operator and a constant
-  // because type checker or intermediate code generator would do that
-
   CAstUnaryOp *u = NULL;
   CAstExpression *n = NULL;
   EToken et;
@@ -447,7 +444,11 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   if (et == tPlusMinus) {
     CToken unaryOp;
     Consume(tPlusMinus, &unaryOp);
-    n = new CAstUnaryOp(unaryOp, unaryOp.GetValue() == "+" ? opPos : opNeg, term(s));
+
+    // Implement "Relaxed" version
+    // if we have unaryOp and number together, merge it
+    if (_scanner->Peek().GetType() == tNumber) n = term(s, &unaryOp);
+    else n = new CAstUnaryOp(unaryOp, unaryOp.GetValue() == "+" ? opPos : opNeg, term(s));
   } else {
     n = term(s);
   }
@@ -475,7 +476,7 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   return n;
 }
 
-CAstExpression* CParser::term(CAstScope *s)
+CAstExpression* CParser::term(CAstScope *s, CToken *unary)
 {
   //
   // term ::= factor { factOp factor }.
@@ -483,7 +484,12 @@ CAstExpression* CParser::term(CAstScope *s)
   CAstExpression *n = NULL;
   EToken et;
 
-  n = factor(s);
+  if (unary) {
+    // number will follow
+    n = number(unary);
+  } else {
+    n = factor(s);
+  }
 
   et = _scanner->Peek().GetType();
 
@@ -599,7 +605,7 @@ CAstDesignator* CParser::qualident(CToken t, CAstScope *s)
   return ret;
 }
 
-CAstConstant* CParser::number(void)
+CAstConstant* CParser::number(CToken *unary)
 {
   //
   // number ::= digit { digit }.
@@ -615,8 +621,14 @@ CAstConstant* CParser::number(void)
   long long v = strtoll(t.GetValue().c_str(), NULL, 10);
   if (errno != 0) SetError(t, "invalid number.");
 
-  // We skip the integer out of range error:
-  // Type checker will do that things for us.
+  if (unary && unary->GetValue() == "-") {
+    v = -v;
+  }
+
+  // the most appropriate place of checking overflow
+  if (v < INT_MIN || v > INT_MAX) {
+    SetError(t, "integer constant outside valid range.");
+  }
 
   return new CAstConstant(t, CTypeManager::Get()->GetInt(), v);
 }

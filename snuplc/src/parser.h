@@ -114,12 +114,12 @@ class CParser {
 
     CAstExpression*   expression(CAstScope *s);
     CAstExpression*   simpleexpr(CAstScope *s);
-    CAstExpression*   term(CAstScope *s);
+    CAstExpression*   term(CAstScope *s, CToken *unary = nullptr);
     CAstExpression*   factor(CAstScope *s);
 
     CAstDesignator*   qualident(CToken t, CAstScope *s);
 
-    CAstConstant*     number(void);
+    CAstConstant*     number(CToken *unary = nullptr);
     CAstConstant*     boolean(void);
     CAstConstant*     char_(void);
     CAstStringConstant*
