@@ -179,14 +179,11 @@ bool CPointerType::Compare(const CType *t) const
   // check whether t is a pointer
   if ((t == NULL) || !t->IsPointer()) return false;
 
-  const CPointerType *pt = dynamic_cast<const CPointerType*>(t);
-  assert(pt != NULL);
+  const CPointerType *pt = static_cast<const CPointerType*>(t);
 
   // comparison: match if
-  // - this is a void pointer or
   // - the types are compatible with respect to Compare()
-  return GetBaseType()->IsNull() ||
-         GetBaseType()->Compare(pt->GetBaseType());
+  return GetBaseType()->Compare(pt->GetBaseType());
 }
 
 ostream& CPointerType::print(ostream &out, int indent) const
