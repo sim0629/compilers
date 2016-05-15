@@ -303,6 +303,22 @@ CSymbol* CAstProcedure::CreateVar(const string ident, const CType *type)
   return new CSymLocal(ident, type);
 }
 
+bool CAstProcedure::TypeCheck(CToken *t, string *msg) const
+{
+  // We first typecheck with CAstScope::TypeCheck
+  // and check if there is some path not returning a value
+  // (only in functions)
+  if (!CAstScope::TypeCheck(t, msg)) return false;
+  if (!GetType()->Compare(CTypeManager::Get()->GetNull())) {
+    if (!AllPathsReturn(GetStatementSequence())) {
+      if (t) *t = GetToken();
+      if (msg) *msg = "Not all paths of the function return a value.";
+      return false;
+    }
+  }
+  return true;
+}
+
 const CType* CAstProcedure::GetType(void) const
 {
   return GetSymbol()->GetDataType();
@@ -311,6 +327,31 @@ const CType* CAstProcedure::GetType(void) const
 string CAstProcedure::dotAttr(void) const
 {
   return " [label=\"p/f " + GetName() + "\",shape=box]";
+}
+
+bool CAstProcedure::AllPathsReturn(CAstStatement* statseq)
+{
+  while (statseq) {
+    if (statseq->IsReturn()) return true;
+    if (statseq->IsIf()) {
+      // if "if-body" and "else-body" both returns, immediately return true
+      // or we have to proceed
+      auto ifst = static_cast<CAstStatIf *>(statseq);
+      if (AllPathsReturn(ifst->GetIfBody()) &&
+          AllPathsReturn(ifst->GetElseBody())) {
+        return true;
+      }
+    }
+    if (statseq->IsWhile()) {
+      // if while body returns, immediately return true
+      // or we have to proceed
+      auto whilest = static_cast<CAstStatWhile *>(statseq);
+      if (AllPathsReturn(whilest->GetBody())) return true;
+    }
+    statseq = statseq->GetNext();
+  }
+  // we found a path that has no return statement!
+  return false;
 }
 
 
@@ -727,7 +768,7 @@ void CAstStatIf::toDot(ostream &out, int indent) const
       string prev = dotID();
       do {
         s->toDot(out, indent);
-        out << ind << prev << " -> " << s->dotID() << " [style=dotted];" 
+        out << ind << prev << " -> " << s->dotID() << " [style=dotted];"
             << endl;
         prev = s->dotID();
         s = s->GetNext();

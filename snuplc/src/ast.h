@@ -336,6 +336,13 @@ class CAstProcedure : public CAstScope {
     /// @brief return (compute) the type of this node
     virtual const CType* GetType(void) const;
 
+    /// @brief perform type checking
+    /// @param t (out, optional) type error at token t
+    /// @param msg (out, optional) type error message
+    /// @retval true if no type error has been found
+    /// @retval false otherwise
+    virtual bool TypeCheck(CToken *t, string *msg) const;
+
     /// @}
 
     /// @name output
@@ -349,6 +356,16 @@ class CAstProcedure : public CAstScope {
 
   private:
     CSymProc *_symbol;              ///< corresponding symbol
+
+    /// @name control flow management
+    /// @{
+
+    /// @brief return if all paths of this statement return a value
+    /// @retval true if all paths correctly return a value
+    /// @retval false if some paths quit without returning a value
+    static bool AllPathsReturn(CAstStatement* statseq);
+
+    /// @}
 };
 
 
@@ -436,6 +453,19 @@ class CAstStatement : public CAstNode {
 
     /// @}
 
+    /// @name property querying
+    /// @{
+
+    /// @brief return @a true for the return statements, @a false otherwise
+    virtual bool IsReturn() const { return false; }
+
+    /// @brief return @a true for the if statements, @a false otherwise
+    virtual bool IsIf() const { return false; }
+
+    /// @brief return @a true for the while statements, @a false otherwise
+    virtual bool IsWhile() const { return false; }
+
+    /// @}
 
   private:
     CAstStatement* _next;           ///< next statement
@@ -629,6 +659,13 @@ class CAstStatReturn : public CAstStatement {
 
     /// @}
 
+    /// @name property querying
+    /// @{
+
+    /// @brief return @a true for the return statements, @a false otherwise
+    virtual bool IsReturn() const { return true; }
+
+    /// @}
 
     /// @name type management
     /// @{
@@ -727,6 +764,14 @@ class CAstStatIf : public CAstStatement {
 
     /// @}
 
+    /// @name property querying
+    /// @{
+
+    /// @brief return @a true for the if statements, @a false otherwise
+    virtual bool IsIf() const { return true; }
+
+    /// @}
+
     /// @name output
     /// @{
 
@@ -801,6 +846,14 @@ class CAstStatWhile : public CAstStatement {
     /// @retval true if no type error has been found
     /// @retval false otherwise
     virtual bool TypeCheck(CToken *t, string *msg) const;
+
+    /// @}
+
+    /// @name property querying
+    /// @{
+
+    /// @brief return @a true for the while statements, @a false otherwise
+    virtual bool IsWhile() const { return true; }
 
     /// @}
 
