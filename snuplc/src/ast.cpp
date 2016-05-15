@@ -435,10 +435,17 @@ bool CAstStatAssign::TypeCheck(CToken *t, string *msg) const
 
   auto typeLHS = _lhs->GetType();
   auto typeRHS = _rhs->GetType();
+
+  // We will support the array assignment
+  // But only non-open arrays to avoid runtime error
+  // So if the type of the operand is a pointer, it must be an array
+  // and we unwrap to do type check properly
+
   if (typeLHS->IsPointer())
     typeLHS = static_cast<const CPointerType *>(typeLHS)->GetBaseType();
   if (typeRHS->IsPointer())
     typeRHS = static_cast<const CPointerType *>(typeRHS)->GetBaseType();
+
   if (!typeLHS->Compare(typeRHS)) {
     if (t != nullptr) *t = GetToken();
     if (msg != nullptr) {
@@ -450,6 +457,8 @@ bool CAstStatAssign::TypeCheck(CToken *t, string *msg) const
     }
     return false;
   }
+
+  // There must be no open dimension
   if (typeLHS->IsArray()) {
     auto arr = static_cast<const CArrayType *>(typeLHS);
 
