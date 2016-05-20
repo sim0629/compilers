@@ -1151,10 +1151,27 @@ CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb)
     cb->AddInstr(new CTacInstr(opAssign, ret, short_val, nullptr));
 
     cb->AddInstr(next_label);
-  }else {
+  } else if (IsRelOp(oper)) {
     // Non short-circuit
+    auto true_label = cb->CreateLabel();
+    auto next_label = cb->CreateLabel();
+
     auto left = _left->ToTac(cb);
     auto right = _right->ToTac(cb);
+    cb->AddInstr(new CTacInstr(oper, true_label, left, right));
+
+    cb->AddInstr(new CTacInstr(opAssign, ret, new CTacConst(0), nullptr));
+    cb->AddInstr(new CTacInstr(opGoto, next_label, nullptr, nullptr));
+
+    cb->AddInstr(true_label);
+    cb->AddInstr(new CTacInstr(opAssign, ret, new CTacConst(1), nullptr));
+
+    cb->AddInstr(next_label);
+  } else {
+    // Integer op
+    auto left = _left->ToTac(cb);
+    auto right = _right->ToTac(cb);
+
     cb->AddInstr(new CTacInstr(oper, ret, left, right));
   }
 
