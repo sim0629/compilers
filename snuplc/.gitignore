@@ -2,3 +2,4 @@
 /obj/*.o
 /test_scanner
 /test_parser
+/test_ir
