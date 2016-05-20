@@ -240,6 +240,20 @@ void CAstScope::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstScope::ToTac(CCodeBlock *cb)
 {
+  // This following code has been copied from the pdf
+  assert(cb != nullptr);
+
+  CAstStatement *s = GetStatementSequence();
+  while (s != nullptr) {
+    CTacLabel *next = cb->CreateLabel();
+    s->ToTac(cb, next);
+    cb->AddInstr(next);
+    s = s->GetNext();
+  }
+
+  // TODO: uncomment the next line
+  //cb->CleanupControlFlow();
+
   return NULL;
 }
 
