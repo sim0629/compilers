@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
       for (size_t p=0; p<proc.size(); p++) {
         proc[p]->toDot(out, 2);
       }
-      out << "};" << endl;
+      out << "}" << endl;
       out.flush();
 
       ostringstream cmd;
