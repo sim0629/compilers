@@ -926,8 +926,7 @@ class CAstExpression : public CAstNode {
     /// @name transformation into TAC
     /// @{
 
-    virtual CTacAddr* ToTac(CCodeBlock *cb);
-    virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
+    virtual CTacAddr* ToTac(CCodeBlock *cb) = 0;
 
     /// @}
 };
@@ -1031,7 +1030,6 @@ class CAstBinaryOp : public CAstOperation {
     /// @{
 
     virtual CTacAddr* ToTac(CCodeBlock *cb);
-    virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
 
@@ -1108,7 +1106,6 @@ class CAstUnaryOp : public CAstOperation {
     /// @{
 
     virtual CTacAddr* ToTac(CCodeBlock *cb);
-    virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
 
@@ -1366,7 +1363,6 @@ class CAstDesignator : public CAstOperand {
     /// @{
 
     virtual CTacAddr* ToTac(CCodeBlock *cb);
-    virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
 
@@ -1458,7 +1454,6 @@ class CAstArrayDesignator : public CAstDesignator {
     /// @{
 
     virtual CTacAddr* ToTac(CCodeBlock *cb);
-    virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
 

@@ -961,17 +961,6 @@ CAstExpression::CAstExpression(CToken t)
 {
 }
 
-CTacAddr* CAstExpression::ToTac(CCodeBlock *cb)
-{
-  return NULL;
-}
-
-CTacAddr* CAstExpression::ToTac(CCodeBlock *cb,
-                                CTacLabel *ltrue, CTacLabel *lfalse)
-{
-  return NULL;
-}
-
 
 //------------------------------------------------------------------------------
 // CAstOperation
@@ -1147,12 +1136,6 @@ CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb)
   return NULL;
 }
 
-CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb,
-                              CTacLabel *ltrue, CTacLabel *lfalse)
-{
-  return NULL;
-}
-
 
 //------------------------------------------------------------------------------
 // CAstUnaryOp
@@ -1263,12 +1246,6 @@ void CAstUnaryOp::toDot(ostream &out, int indent) const
 }
 
 CTacAddr* CAstUnaryOp::ToTac(CCodeBlock *cb)
-{
-  return NULL;
-}
-
-CTacAddr* CAstUnaryOp::ToTac(CCodeBlock *cb,
-                             CTacLabel *ltrue, CTacLabel *lfalse)
 {
   return NULL;
 }
@@ -1562,12 +1539,6 @@ CTacAddr* CAstDesignator::ToTac(CCodeBlock *cb)
   return NULL;
 }
 
-CTacAddr* CAstDesignator::ToTac(CCodeBlock *cb,
-                                CTacLabel *ltrue, CTacLabel *lfalse)
-{
-  return NULL;
-}
-
 
 //------------------------------------------------------------------------------
 // CAstArrayDesignator
@@ -1685,12 +1656,6 @@ void CAstArrayDesignator::toDot(ostream &out, int indent) const
 }
 
 CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
-{
-  return NULL;
-}
-
-CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb,
-                                     CTacLabel *ltrue, CTacLabel *lfalse)
 {
   return NULL;
 }
