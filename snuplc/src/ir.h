@@ -607,6 +607,7 @@ class CProcedure : public CScope {
 
     /// @brief constructor
     /// @param ast abstract syntax tree (must be a CAstProcedure instance)
+    /// @param parent superordinate scope
     CProcedure(CAstNode *ast, CScope *parent);
 
     /// @brief destructor
