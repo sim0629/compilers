@@ -1133,7 +1133,34 @@ void CAstBinaryOp::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb)
 {
-  return NULL;
+  auto oper = GetOperation();
+  auto ret = cb->CreateTemp(GetType());
+
+  if (oper == opAnd || oper == opOr) {
+    // short-circuit
+    auto next_label = cb->CreateLabel();
+    auto short_label = cb->CreateLabel();
+    auto short_val = new CTacConst(oper == opAnd ? 0 : 1);
+
+    auto left = _left->ToTac(cb);
+    cb->AddInstr(new CTacInstr(opEqual, short_label, left, short_val));
+
+    auto right = _right->ToTac(cb);
+    cb->AddInstr(new CTacInstr(opAssign, ret, right, nullptr));
+    cb->AddInstr(new CTacInstr(opGoto, next_label, nullptr, nullptr));
+
+    cb->AddInstr(short_label);
+    cb->AddInstr(new CTacInstr(opAssign, ret, short_val, nullptr));
+
+    cb->AddInstr(next_label);
+  }else {
+    // Non short-circuit
+    auto left = _left->ToTac(cb);
+    auto right = _right->ToTac(cb);
+    cb->AddInstr(new CTacInstr(oper, ret, left, right));
+  }
+
+  return ret;
 }
 
 
@@ -1247,7 +1274,14 @@ void CAstUnaryOp::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstUnaryOp::ToTac(CCodeBlock *cb)
 {
-  return NULL;
+  // Create variable to hold the result
+  auto ret = cb->CreateTemp(GetType());
+
+  // Add the operation
+  auto operand = _operand->ToTac(cb);
+  cb->AddInstr(new CTacInstr(GetOperation(), ret, operand, nullptr));
+
+  return ret;
 }
 
 
@@ -1338,7 +1372,14 @@ void CAstSpecialOp::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstSpecialOp::ToTac(CCodeBlock *cb)
 {
-  return NULL;
+  // Create variable to hold the result
+  auto ret = cb->CreateTemp(GetType());
+
+  // Add the operation
+  auto operand = _operand->ToTac(cb);
+  cb->AddInstr(new CTacInstr(GetOperation(), ret, operand, nullptr));
+
+  return ret;
 }
 
 
