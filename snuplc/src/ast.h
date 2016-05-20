@@ -1462,7 +1462,9 @@ class CAstArrayDesignator : public CAstDesignator {
     bool _done;                     ///< flag indicating all index expressions
                                     ///< have been added
     vector<CAstExpression*> _idx;   ///< index expressions
-    CAstExpression *_offset;        ///< address computation expression
+
+    CTacAddr *GetArraySize(CCodeBlock *cb, CTacTemp *dimarray[], 
+                           int arrsize, int basesize);
 };
 
 

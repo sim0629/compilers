@@ -1577,7 +1577,7 @@ void CAstDesignator::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstDesignator::ToTac(CCodeBlock *cb)
 {
-  return NULL;
+  return new CTacName(_symbol);
 }
 
 
@@ -1585,7 +1585,7 @@ CTacAddr* CAstDesignator::ToTac(CCodeBlock *cb)
 // CAstArrayDesignator
 //
 CAstArrayDesignator::CAstArrayDesignator(CToken t, const CSymbol *symbol)
-  : CAstDesignator(t, symbol), _done(false), _offset(NULL)
+  : CAstDesignator(t, symbol), _done(false)
 {
 }
 
@@ -1698,7 +1698,89 @@ void CAstArrayDesignator::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
 {
-  return NULL;
+  const CArrayType *arr;
+  CTacAddr *arrptr;
+
+  auto dimsym = cb->GetOwner()->GetSymbolTable()->FindSymbol("DIM");
+
+  if (_symbol->GetDataType()->IsArray()) {
+    arr = static_cast<const CArrayType *>(_symbol->GetDataType());
+    arrptr = cb->CreateTemp(CTypeManager::Get()->GetPointer(_symbol->GetDataType()));
+    cb->AddInstr(new CTacInstr(opAddress, arrptr, new CTacName(_symbol)));
+  } else {
+    auto ptrtype = static_cast<const CPointerType *>(_symbol->GetDataType());
+    assert(ptrtype->GetBaseType()->IsArray());
+    arr = static_cast<const CArrayType *>(ptrtype->GetBaseType());
+    arrptr = new CTacName(_symbol);
+  }
+
+  vector<CTacTemp *> dims;
+
+  for (int i = 2; i <= arr->GetNDim(); i++) {
+    auto dimvar = cb->CreateTemp(CTypeManager::Get()->GetInt());
+    cb->AddInstr(new CTacInstr(opParam, new CTacConst(1), new CTacConst(i)));
+    cb->AddInstr(new CTacInstr(opParam, new CTacConst(0), arrptr));
+    cb->AddInstr(new CTacInstr(opCall, dimvar, new CTacName(dimsym)));
+    dims.push_back(dimvar);
+  }
+
+  CTacAddr *result_ptr = arrptr;
+  const CType *result_type = arr;
+  for (int i = 0; i < GetNIndices(); i++) {
+    auto newaddr = cb->CreateTemp(CTypeManager::Get()->GetInt());
+    auto jmplen = cb->CreateTemp(CTypeManager::Get()->GetInt());
+    auto metasize = new CTacConst(4 * (arr->GetNDim() + 1 - i));
+    auto offset = cb->CreateTemp(CTypeManager::Get()->GetInt());
+
+    if (dims.size() > i) {
+      auto arraysize = GetArraySize(cb, &dims[i], dims.size() - i, arr->GetBaseType()->GetSize());
+      cb->AddInstr(new CTacInstr(opMul, jmplen, arraysize, GetIndex(i)->ToTac(cb)));
+    } else {
+      cb->AddInstr(new CTacInstr(opMul, jmplen, new CTacConst(GetType()->GetSize()), GetIndex(i)->ToTac(cb)));
+    }
+    cb->AddInstr(new CTacInstr(opAdd, offset, jmplen, metasize));
+    cb->AddInstr(new CTacInstr(opAdd, newaddr, result_ptr, offset));
+    result_ptr = newaddr;
+    result_type = static_cast<const CArrayType *>(result_type)->GetInnerType();
+  }
+
+  CTacAddr *result;
+
+  if (result_type->IsScalar()) {
+    result = new CTacReference(static_cast<CTacTemp *>(result_ptr)->GetSymbol());
+  } else {
+    result = cb->CreateTemp(CTypeManager::Get()->GetPointer(result_type));
+    cb->AddInstr(new CTacInstr(opAddress, result, 
+      new CTacReference(static_cast<CTacTemp *>(result_ptr)->GetSymbol())));
+  }
+
+  return result;
+}
+
+CTacAddr *CAstArrayDesignator::GetArraySize(
+  CCodeBlock *cb, CTacTemp *dimarray[], int arrsize, int basesize)
+{
+  vector<CTacTemp *> dim_multiply;
+  dim_multiply.push_back(dimarray[0]);
+
+  for (int i = 1; i < arrsize; i++) {
+    CTacTemp *next = cb->CreateTemp(CTypeManager::Get()->GetInt());
+    cb->AddInstr(new CTacInstr(opMul, next, dim_multiply.back(), dimarray[i]));
+    dim_multiply.push_back(next);
+  }
+
+  CTacAddr *result = new CTacConst(4 * (arrsize + 1));
+
+  for (int i = 0, factor = 4 * arrsize; i < arrsize; i++, factor -= 4) {
+    auto tacfactor = new CTacConst(factor != 4 ? factor : basesize);
+    CTacTemp *tmp = cb->CreateTemp(CTypeManager::Get()->GetInt());
+    cb->AddInstr(new CTacInstr(opMul, tmp, new CTacConst(factor), dim_multiply[i]));
+    CTacTemp *tmp2 = cb->CreateTemp(CTypeManager::Get()->GetInt());
+    cb->AddInstr(new CTacInstr(opAdd, tmp2, tmp, result));
+    result = tmp2;
+  }
+
+  return result;
 }
 
 
