@@ -1753,13 +1753,8 @@ string CAstConstant::dotAttr(void) const
 
 CTacAddr* CAstConstant::ToTac(CCodeBlock *cb)
 {
-  return NULL;
-}
-
-CTacAddr* CAstConstant::ToTac(CCodeBlock *cb,
-                                CTacLabel *ltrue, CTacLabel *lfalse)
-{
-  return NULL;
+  // Just return the value without adding code to cb
+  return new CTacConst(static_cast<int>(_value));
 }
 
 
@@ -1830,13 +1825,8 @@ string CAstStringConstant::dotAttr(void) const
 
 CTacAddr* CAstStringConstant::ToTac(CCodeBlock *cb)
 {
-  return NULL;
-}
-
-CTacAddr* CAstStringConstant::ToTac(CCodeBlock *cb,
-                                CTacLabel *ltrue, CTacLabel *lfalse)
-{
-  return NULL;
+  // Just return the symbol without adding code to cb
+  return new CTacName(_sym);
 }
 
 

@@ -1540,7 +1540,6 @@ class CAstConstant : public CAstOperand {
     /// @{
 
     virtual CTacAddr* ToTac(CCodeBlock *cb);
-    virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
 
@@ -1619,7 +1618,6 @@ class CAstStringConstant : public CAstOperand {
     /// @{
 
     virtual CTacAddr* ToTac(CCodeBlock *cb);
-    virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
 
