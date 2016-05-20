@@ -842,8 +842,7 @@ CTacAddr* CAstStatIf::ToTac(CCodeBlock *cb, CTacLabel *next)
   cb->AddInstr(false_label);
   if (_elseBody != nullptr) _elseBody->ToTac(cb, next);
 
-  // Go to next
-  return CAstStatement::ToTac(cb, next);
+  return nullptr;
 }
 
 
@@ -948,8 +947,7 @@ CTacAddr* CAstStatWhile::ToTac(CCodeBlock *cb, CTacLabel *next)
   cb->AddInstr(body_label);
   _body->ToTac(cb, cond_label);
 
-  // Go to next
-  return CAstStatement::ToTac(cb, next);
+  return nullptr;
 }
 
 
