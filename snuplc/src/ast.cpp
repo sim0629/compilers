@@ -1475,13 +1475,22 @@ void CAstFunctionCall::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstFunctionCall::ToTac(CCodeBlock *cb)
 {
-  return NULL;
-}
+  // Evaluate and set up parameters
+  for(size_t i = 0; i < _arg.size(); i++) {
+    auto a = _arg[i]->ToTac(cb);
+    cb->AddInstr(new CTacInstr(opParam, new CTacConst(i), a, nullptr));
+  }
 
-CTacAddr* CAstFunctionCall::ToTac(CCodeBlock *cb,
-                                  CTacLabel *ltrue, CTacLabel *lfalse)
-{
-  return NULL;
+  // Prepare temporary variable for getting the return value
+  CTacTemp *ret_val = nullptr;
+  auto ret_type = GetType();
+  if (!ret_type->IsNull())
+    ret_val = cb->CreateTemp(ret_type);
+
+  // Call the function
+  cb->AddInstr(new CTacInstr(opCall, ret_val, new CTacName(_symbol), nullptr));
+
+  return ret_val;
 }
 
 

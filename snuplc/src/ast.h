@@ -1273,7 +1273,6 @@ class CAstFunctionCall : public CAstExpression {
     /// @{
 
     virtual CTacAddr* ToTac(CCodeBlock *cb);
-    virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
 
