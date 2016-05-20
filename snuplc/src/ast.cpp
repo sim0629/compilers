@@ -417,6 +417,12 @@ CAstStatement* CAstStatement::GetNext(void) const
 
 CTacAddr* CAstStatement::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
+  // generate code for statement (assignment, if-else, etc.)
+  // it is done by each subclass
+
+  // jump to next
+  cb->AddInstr(new CTacInstr(opGoto, next));
+
   return NULL;
 }
 
@@ -538,7 +544,14 @@ void CAstStatAssign::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstStatAssign::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
-  return NULL;
+  auto lhs = _lhs->ToTac(cb);
+  auto rhs = _rhs->ToTac(cb);
+
+  // Assign rhs to lhs
+  cb->AddInstr(new CTacInstr(opAssign, lhs, rhs, nullptr));
+
+  // Go to next
+  return CAstStatement::ToTac(cb, next);
 }
 
 
@@ -585,7 +598,11 @@ void CAstStatCall::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstStatCall::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
-  return NULL;
+  // Function call
+  _call->ToTac(cb);
+
+  // Go to next
+  return CAstStatement::ToTac(cb, next);
 }
 
 
@@ -683,7 +700,14 @@ void CAstStatReturn::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstStatReturn::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
-  return NULL;
+  CTacAddr *expr = nullptr;
+
+  // Get the return value if expr exists
+  if (_expr != nullptr) expr = _expr->ToTac(cb);
+  cb->AddInstr(new CTacInstr(opReturn, nullptr, expr, nullptr));
+
+  // Do not need to go to next
+  return nullptr;
 }
 
 
@@ -802,7 +826,24 @@ void CAstStatIf::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstStatIf::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
-  return NULL;
+  auto true_label = cb->CreateLabel("if_true");
+  auto false_label = cb->CreateLabel("if_false");
+
+  // branch
+  auto cond = _cond->ToTac(cb);
+  cb->AddInstr(new CTacInstr(opEqual, true_label, cond, new CTacConst(1)));
+  cb->AddInstr(new CTacInstr(opGoto, false_label, nullptr, nullptr));
+
+  // true part
+  cb->AddInstr(true_label);
+  _ifBody->ToTac(cb, next);
+
+  // false part
+  cb->AddInstr(false_label);
+  if (_elseBody != nullptr) _elseBody->ToTac(cb, next);
+
+  // Go to next
+  return CAstStatement::ToTac(cb, next);
 }
 
 
@@ -894,7 +935,21 @@ void CAstStatWhile::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstStatWhile::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
-  return NULL;
+  auto cond_label = cb->CreateLabel("while_cond");
+  auto body_label = cb->CreateLabel("while_body");
+
+  // branch
+  cb->AddInstr(cond_label);
+  auto cond = _cond->ToTac(cb);
+  cb->AddInstr(new CTacInstr(opEqual, body_label, cond, new CTacConst(1)));
+  cb->AddInstr(new CTacInstr(opGoto, next, nullptr, nullptr));
+
+  // loop body
+  cb->AddInstr(body_label);
+  _body->ToTac(cb, cond_label);
+
+  // Go to next
+  return CAstStatement::ToTac(cb, next);
 }
 
 
