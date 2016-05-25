@@ -181,6 +181,11 @@ class CTacAddr : public CTac {
     /// @}
 };
 
+//------------------------------------------------------------------------------
+/// @brief name class
+///
+/// This class represents a name
+///
 class CTacName : public CTacAddr {
   public:
     /// @name constructors/destructors
@@ -216,6 +221,11 @@ class CTacName : public CTacAddr {
     const CSymbol *_symbol;          ///< symbol
 };
 
+//------------------------------------------------------------------------------
+/// @brief const class
+///
+/// This class represents a const
+///
 class CTacConst : public CTacAddr {
   public:
     /// @name constructors/destructors
@@ -251,6 +261,11 @@ class CTacConst : public CTacAddr {
     int _value;                      ///< constant value
 };
 
+//------------------------------------------------------------------------------
+/// @brief temp class
+///
+/// This class represents a temp
+///
 class CTacTemp: public CTacName {
   public:
     /// @name constructors/destructors
@@ -267,6 +282,11 @@ class CTacTemp: public CTacName {
     /// @}
 };
 
+//------------------------------------------------------------------------------
+/// @brief reference class
+///
+/// This class represents a reference
+///
 class CTacReference: public CTacName {
   public:
     /// @name constructors/destructors
@@ -427,14 +447,14 @@ class CTacLabel : public CTacInstr {
 };
 
 
+class CAstNode;
+class CCodeBlock;
+
 //------------------------------------------------------------------------------
 /// @brief scope class
 ///
 /// This class represents a scope
 ///
-class CAstNode;
-class CCodeBlock;
-
 class CScope {
   public:
     /// @name constructors/destructors
