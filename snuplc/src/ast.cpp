@@ -251,8 +251,7 @@ CTacAddr* CAstScope::ToTac(CCodeBlock *cb)
     s = s->GetNext();
   }
 
-  // TODO: uncomment the next line
-  //cb->CleanupControlFlow();
+  cb->CleanupControlFlow();
 
   return NULL;
 }
