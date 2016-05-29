@@ -299,7 +299,7 @@ class CTacReference: public CTacName {
     ///
     /// param symbol value holding the reference
     /// param deref  the symbol behind the reference
-    CTacReference(const CSymbol *symbol, const CSymbol *deref);
+    CTacReference(const CSymbol *symbol, const CSymbol *deref=nullptr);
 
     /// @}
 
