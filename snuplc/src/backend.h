@@ -129,10 +129,10 @@ class CBackendx86 : public CBackend {
     /// EmitLocalData() initializes local data (i.e., arrays)
     virtual void EmitLocalData(CScope *s);
 
-    /// @brief emit code for code block @cb
+    /// @brief emit code for code block @a cb
     virtual void EmitCodeBlock(CCodeBlock *cb);
 
-    /// @brief emit instruction @i
+    /// @brief emit instruction @a i
     virtual void EmitInstruction(CTacInstr *i);
 
     /// @brief emit an instruction
@@ -162,7 +162,7 @@ class CBackendx86 : public CBackend {
     /// @brief return the condition suffix for a binary comparison operation
     string Condition(EOperation cond) const;
 
-    /// @brief compute the size of operator @t
+    /// @brief compute the size of operator @a t
     int OperandSize(CTac *t) const;
 
     /// @brief compute the location of local variables, temporaries and
