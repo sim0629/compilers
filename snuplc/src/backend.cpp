@@ -194,8 +194,8 @@ void CBackendx86::EmitScope(CScope *scope)
   //
   // emit function prologue
   //
-  // forall i in instructions do
-  //   EmitInstruction(i)
+  auto cb = scope->GetCodeBlock();
+  EmitCodeBlock(cb);
   //
   // emit function epilogue
 
