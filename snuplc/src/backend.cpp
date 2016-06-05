@@ -195,6 +195,7 @@ void CBackendx86::EmitScope(CScope *scope)
   // emit function prologue
   //
   auto cb = scope->GetCodeBlock();
+  SetScope(scope);
   EmitCodeBlock(cb);
   //
   // emit function epilogue
