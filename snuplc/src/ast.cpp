@@ -1713,6 +1713,7 @@ void CAstArrayDesignator::toDot(ostream &out, int indent) const
 CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
 {
   const CArrayType *arr;
+  const CType *basetype;
   CTacAddr *arrptr;
 
   auto dimsym = cb->GetOwner()->GetSymbolTable()->FindSymbol("DIM");
@@ -1728,13 +1729,22 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
     arrptr = new CTacName(_symbol);
   }
 
+  basetype = arr->GetBaseType();
   vector<CTacTemp *> dims;
+  int align = arr->GetAlign();
 
   for (int i = 2; i <= arr->GetNDim(); i++) {
     auto dimvar = cb->CreateTemp(CTypeManager::Get()->GetInt());
     cb->AddInstr(new CTacInstr(opParam, new CTacConst(1), new CTacConst(i)));
     cb->AddInstr(new CTacInstr(opParam, new CTacConst(0), arrptr));
     cb->AddInstr(new CTacInstr(opCall, dimvar, new CTacName(dimsym)));
+    if (i == arr->GetNDim() && basetype->GetSize() & (align - 1)) {
+      auto aligned = cb->CreateTemp(CTypeManager::Get()->GetInt());
+      auto result = cb->CreateTemp(CTypeManager::Get()->GetInt());
+      cb->AddInstr(new CTacInstr(opAdd, aligned, new CTacConst(align - 1), dimvar));
+      cb->AddInstr(new CTacInstr(opAnd, result, new CTacConst(~(align - 1)), aligned));
+      dimvar = result;
+    }
     dims.push_back(dimvar);
   }
 
