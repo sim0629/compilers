@@ -133,10 +133,11 @@ void CBackendx86::EmitCode(void)
        << _ind << ".extern WriteLn" << endl
        << endl;
 
-  // TODO
-  // forall s in subscopes do
-  //   EmitScope(s)
-  // EmitScope(program)
+  // Emit assembly code for subscopes of the module.
+  for (auto subscope : _m->GetSubscopes())
+    EmitScope(subscope);
+  // Emit assembly code for the module itself.
+  EmitScope(_m);
 
   _out << _ind << "# end of text section" << endl
        << _ind << "#-----------------------------------------" << endl
