@@ -403,11 +403,37 @@ void CBackendx86::Store(CTac *dst, char src_base, string comment)
 
 string CBackendx86::Operand(const CTac *op)
 {
+  // return a string representing op
   string operand;
 
-  // TODO
-  // return a string representing op
-  // hint: take special care of references (op of type CTacReference)
+  assert(op->IsAddr());
+  if (op->IsConst()) {
+    // A constant is represented by the immediate value.
+    auto tacConst = static_cast<const CTacConst *>(op);
+    operand = Imm(tacConst->GetValue());
+  }
+  else if (op->IsReference()) {
+    auto tacReference = static_cast<const CTacReference *>(op);
+    auto symbol = tacReference->GetSymbol();
+    ostringstream o;
+    o << "ref_" << symbol->GetName();
+    operand = o.str();
+    // TODO correct implementation needed
+    // hint: take special care of references (op of type CTacReference)
+  }
+  else { // op is temp or name not reference
+    auto tacName = static_cast<const CTacName *>(op);
+    auto symbol = tacName->GetSymbol();
+    if (symbol->GetSymbolType() == stGlobal) {
+      // A global symbol is referenced by its name.
+      operand = symbol->GetName();
+    } else {
+      // A local symbol is referenced by its base register and the offset.
+      ostringstream o;
+      o << symbol->GetOffset() << "(" << symbol->GetBaseRegister() << ")";
+      operand = o.str();
+    }
+  }
 
   return operand;
 }

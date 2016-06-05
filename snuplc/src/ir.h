@@ -121,6 +121,16 @@ class CTac {
 
     /// @}
 
+    /// @name dynamic type
+    /// @{
+
+    virtual bool IsAddr(void)      const { return false; }
+    virtual bool IsConst(void)     const { return false; }
+    virtual bool IsName(void)      const { return false; }
+    virtual bool IsReference(void) const { return false; }
+    virtual bool IsTemp(void)      const { return false; }
+
+    /// @}
 
     /// @name output
     /// @{
@@ -169,6 +179,12 @@ class CTacAddr : public CTac {
 
     /// @}
 
+    /// @name dynamic type
+    /// @{
+
+    virtual bool IsAddr(void) const { return true; }
+
+    /// @}
 
     /// @name output
     /// @{
@@ -197,6 +213,12 @@ class CTacName : public CTacAddr {
 
     /// @}
 
+    /// @name dynamic type
+    /// @{
+
+    virtual bool IsName(void) const { return true; }
+
+    /// @}
 
     /// @name properties
     /// @{
@@ -237,6 +259,12 @@ class CTacConst : public CTacAddr {
 
     /// @}
 
+    /// @name dynamic type
+    /// @{
+
+    virtual bool IsConst(void) const { return true; }
+
+    /// @}
 
     /// @name properties
     /// @{
@@ -280,6 +308,13 @@ class CTacTemp: public CTacName {
     CTacTemp(const CSymbol *symbol);
 
     /// @}
+
+    /// @name dynamic type
+    /// @{
+
+    virtual bool IsTemp(void) const { return true; }
+
+    /// @}
 };
 
 //------------------------------------------------------------------------------
@@ -303,6 +338,12 @@ class CTacReference: public CTacName {
 
     /// @}
 
+    /// @name dynamic type
+    /// @{
+
+    virtual bool IsReference(void) const { return true; }
+
+    /// @}
 
     /// @name properties
     /// @{
