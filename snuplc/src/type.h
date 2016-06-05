@@ -490,6 +490,7 @@ class CArrayType : public CType {
   private:
     int            _nelem;        ///< element count
     const CType   *_innertype;    ///< inner type
+    mutable int    _datasize;     ///< datasize of this type
 };
 
 

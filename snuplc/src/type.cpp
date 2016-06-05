@@ -201,7 +201,7 @@ ostream& CPointerType::print(ostream &out, int indent) const
 // CArrayType
 //
 CArrayType::CArrayType(int nelem, const CType *innertype)
-  : CType(), _nelem(nelem), _innertype(innertype)
+  : CType(), _nelem(nelem), _innertype(innertype), _datasize(-1)
 {
   assert((_nelem > 0) || (_nelem == OPEN));
   assert(_innertype != NULL);
@@ -215,12 +215,19 @@ CArrayType::~CArrayType(void)
 
 int CArrayType::GetSize(void) const
 {
-  return 4 + 4*GetNDim() + GetDataSize();
+  int ret = GetDataSize();
+  if (ret == 0) return 0;
+  int align = GetAlign();
+  ret = (ret + (align - 1)) & ~(align - 1);
+  return ret + 4 + 4 * GetNDim();
 }
 
 int CArrayType::GetDataSize(void) const
 {
-  return GetNElem()*GetInnerType()->GetDataSize();
+  if (_datasize < 0) {
+    _datasize = GetNElem()*GetInnerType()->GetSize();
+  }
+  return _datasize;
 }
 
 int CArrayType::GetAlign(void) const
