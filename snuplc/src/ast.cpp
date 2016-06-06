@@ -1508,7 +1508,7 @@ void CAstFunctionCall::toDot(ostream &out, int indent) const
 CTacAddr* CAstFunctionCall::ToTac(CCodeBlock *cb)
 {
   // Evaluate and set up parameters
-  for(size_t i = 0; i < _arg.size(); i++) {
+  for(size_t i = _arg.size() - 1; i != -1; i--) {
     auto a = _arg[i]->ToTac(cb);
     cb->AddInstr(new CTacInstr(opParam, new CTacConst(i), a, nullptr));
   }
