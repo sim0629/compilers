@@ -331,34 +331,20 @@ void CBackendx86::EmitGlobalData(CScope *scope)
       _out << left << setw(36) << s->GetName() + ":" << "# " << t << endl;
 
       if (t->IsArray()) {
-        const CArrayType *a = dynamic_cast<const CArrayType*>(t);
-        assert(a != NULL);
-        int dim = a->GetNDim();
-
-        _out << setw(4) << " "
-          << ".long " << right << setw(4) << dim << endl;
-
-        for (int d=0; d<dim; d++) {
-          assert(a != NULL);
-
-          _out << setw(4) << " "
-            << ".long " << right << setw(4) << a->GetNElem() << endl;
-
-          a = dynamic_cast<const CArrayType*>(a->GetInnerType());
-        }
-      }
-
-      const CDataInitializer *di = s->GetData();
-      if (di != NULL) {
-        const CDataInitString *sdi = dynamic_cast<const CDataInitString*>(di);
-        assert(sdi != NULL);  // only support string data initializers for now
-
-        _out << left << setw(4) << " "
-          << ".asciz " << '"' << sdi->GetData() << '"' << endl;
+        InitGlobalArray(static_cast<const CArrayType *>(t));
       } else {
-        _out  << left << setw(4) << " "
-          << ".skip " << dec << right << setw(4) << t->GetDataSize()
-          << endl;
+        const CDataInitializer *di = s->GetData();
+        if (di != NULL) {
+          const CDataInitString *sdi = dynamic_cast<const CDataInitString*>(di);
+          assert(sdi != NULL);  // only support string data initializers for now
+
+          _out << left << setw(4) << " "
+            << ".asciz " << '"' << sdi->GetData() << '"' << endl;
+        } else {
+          _out  << left << setw(4) << " "
+            << ".skip " << dec << right << setw(4) << t->GetDataSize()
+            << endl;
+        }
       }
 
       size += t->GetSize();
@@ -546,6 +532,39 @@ void CBackendx86::InitArray(string base, int offset, const CArrayType *type, str
     string subscript = '[' + to_string(i) + ']';
     InitArray(base, offset, innerarr, name + subscript);
     offset += (innerarr->GetSize() + innerarr->GetAlign() - 1) & ~(innerarr->GetAlign() - 1);
+  }
+}
+
+void CBackendx86::InitGlobalArray(const CArrayType *type)
+{
+  auto a = type;
+  int dim = a->GetNDim();
+
+  _out << setw(4) << " "
+    << ".long " << right << setw(4) << dim << endl;
+
+  for (int d=0; d<dim; d++) {
+    assert(a != NULL);
+
+    _out << setw(4) << " "
+      << ".long " << right << setw(4) << a->GetNElem() << endl;
+
+    if (!a->GetInnerType()->IsArray()) break;
+    a = static_cast<const CArrayType*>(a->GetInnerType());
+  }
+
+  if (dim > 1) {
+    for (int n=0; n<type->GetNElem(); n++) {
+      InitGlobalArray(static_cast<const CArrayType *>(type->GetInnerType()));
+    }
+  } else {
+    _out << left << setw(4) << " "
+      << ".skip " << dec << right << setw(4) << type->GetDataSize()
+      << endl;
+    if (type->GetDataSize() & (type->GetAlign() - 1)) {
+      _out << setw(4) << " " << ".align "
+        << right << setw(3) << type->GetAlign() << endl;
+    }
   }
 }
 
