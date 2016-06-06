@@ -514,13 +514,26 @@ string CBackendx86::Condition(EOperation cond) const
 
 int CBackendx86::OperandSize(CTac *t) const
 {
+  // compute the size for operand t of type CTacName
   int size = 4;
 
+  assert(t->IsAddr());
+  if (t->IsConst()) {
+    // size is always 4
+  }
+  else if (t->IsReference()) {
   // TODO
-  // compute the size for operand t of type CTacName
   // Hint: you need to take special care of references (incl. references to pointers!)
   //       and arrays. Compare your output to that of the reference implementation
   //       if you are not sure.
+  }
+  else {
+    // size is 4 except boolean
+    auto tacName = static_cast<const CTacName *>(t);
+    auto type = tacName->GetSymbol()->GetDataType();
+    auto typeBool = CTypeManager::Get()->GetBool();
+    if (typeBool->Compare(type)) size = 1;
+  }
 
   return size;
 }
