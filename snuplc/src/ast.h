@@ -453,6 +453,9 @@ class CAstStatement : public CAstNode {
 
     /// @}
 
+    static void SequenceToTac(CCodeBlock *cb, CAstStatement *s,
+                              CTacLabel *next=nullptr);
+
     /// @name property querying
     /// @{
 

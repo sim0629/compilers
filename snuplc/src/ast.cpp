@@ -244,12 +244,7 @@ CTacAddr* CAstScope::ToTac(CCodeBlock *cb)
   assert(cb != nullptr);
 
   CAstStatement *s = GetStatementSequence();
-  while (s != nullptr) {
-    CTacLabel *next = cb->CreateLabel();
-    s->ToTac(cb, next);
-    cb->AddInstr(next);
-    s = s->GetNext();
-  }
+  CAstStatement::SequenceToTac(cb, s);
 
   cb->CleanupControlFlow();
 
@@ -423,6 +418,18 @@ CTacAddr* CAstStatement::ToTac(CCodeBlock *cb, CTacLabel *next)
   cb->AddInstr(new CTacInstr(opGoto, next));
 
   return NULL;
+}
+
+void CAstStatement::SequenceToTac(CCodeBlock *cb, CAstStatement *s, CTacLabel *next)
+{
+  while (s != nullptr) {
+    CTacLabel *next = cb->CreateLabel();
+    s->ToTac(cb, next);
+    cb->AddInstr(next);
+    s = s->GetNext();
+  }
+  if (next)
+    cb->AddInstr(new CTacInstr(opGoto, next));
 }
 
 
@@ -835,11 +842,11 @@ CTacAddr* CAstStatIf::ToTac(CCodeBlock *cb, CTacLabel *next)
 
   // true part
   cb->AddInstr(true_label);
-  _ifBody->ToTac(cb, next);
+  CAstStatement::SequenceToTac(cb, _ifBody, next);
 
   // false part
   cb->AddInstr(false_label);
-  if (_elseBody != nullptr) _elseBody->ToTac(cb, next);
+  CAstStatement::SequenceToTac(cb, _elseBody, next);
 
   return nullptr;
 }
@@ -944,7 +951,7 @@ CTacAddr* CAstStatWhile::ToTac(CCodeBlock *cb, CTacLabel *next)
 
   // loop body
   cb->AddInstr(body_label);
-  _body->ToTac(cb, cond_label);
+  CAstStatement::SequenceToTac(cb, _body, cond_label);
 
   return nullptr;
 }
