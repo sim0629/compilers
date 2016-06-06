@@ -139,7 +139,7 @@ class CBackendx86 : public CBackend {
     void InitArray(string base, int offset, const CArrayType *type, string name);
 
     /// @brief emit array initialization instruction
-    void InitGlobalArray(const CArrayType *type);
+    void InitGlobalArray(const CArrayType *type, CSymbol *s);
 
     /// @brief emit a load instruction
     void Load(CTacAddr *src, string dst, string comment="");

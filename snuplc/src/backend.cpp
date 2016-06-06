@@ -332,20 +332,11 @@ void CBackendx86::EmitGlobalData(CScope *scope)
       _out << left << setw(36) << s->GetName() + ":" << "# " << t << endl;
 
       if (t->IsArray()) {
-        InitGlobalArray(static_cast<const CArrayType *>(t));
+        InitGlobalArray(static_cast<const CArrayType *>(t), s);
       } else {
-        const CDataInitializer *di = s->GetData();
-        if (di != NULL) {
-          const CDataInitString *sdi = dynamic_cast<const CDataInitString*>(di);
-          assert(sdi != NULL);  // only support string data initializers for now
-
-          _out << left << setw(4) << " "
-            << ".asciz " << '"' << sdi->GetData() << '"' << endl;
-        } else {
-          _out  << left << setw(4) << " "
-            << ".skip " << dec << right << setw(4) << t->GetDataSize()
-            << endl;
-        }
+        _out  << left << setw(4) << " "
+          << ".skip " << dec << right << setw(4) << t->GetDataSize()
+          << endl;
       }
 
       size += t->GetSize();
@@ -552,7 +543,7 @@ void CBackendx86::InitArray(string base, int offset, const CArrayType *type, str
   }
 }
 
-void CBackendx86::InitGlobalArray(const CArrayType *type)
+void CBackendx86::InitGlobalArray(const CArrayType *type, CSymbol *s)
 {
   auto a = type;
   int dim = a->GetNDim();
@@ -572,12 +563,21 @@ void CBackendx86::InitGlobalArray(const CArrayType *type)
 
   if (dim > 1) {
     for (int n=0; n<type->GetNElem(); n++) {
-      InitGlobalArray(static_cast<const CArrayType *>(type->GetInnerType()));
+      InitGlobalArray(static_cast<const CArrayType *>(type->GetInnerType()), s);
     }
   } else {
-    _out << left << setw(4) << " "
-      << ".skip " << dec << right << setw(4) << type->GetDataSize()
-      << endl;
+    const CDataInitializer *di = s->GetData();
+    if (di != NULL) {
+      const CDataInitString *sdi = dynamic_cast<const CDataInitString*>(di);
+      assert(sdi != NULL);  // only support string data initializers for now
+
+      _out << left << setw(4) << " "
+        << ".asciz " << '"' << sdi->GetData() << '"' << endl;
+    } else {
+      _out << left << setw(4) << " "
+        << ".skip " << dec << right << setw(4) << type->GetDataSize()
+        << endl;
+    }
     if (type->GetDataSize() & (type->GetAlign() - 1)) {
       _out << setw(4) << " " << ".align "
         << right << setw(3) << type->GetAlign() << endl;
