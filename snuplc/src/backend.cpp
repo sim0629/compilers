@@ -387,6 +387,7 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
   ostringstream inst;
   const CTacLabel *target;
   const CTacName *func;
+  const CSymProc *proc;
 
   switch (op) {
     // binary operators
@@ -459,8 +460,10 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     // dst = call src1
     case opCall:
       func = static_cast<const CTacName *>(i->GetSrc(1));
-      EmitInstruction("call", func->GetSymbol()->GetName(), cmt.str());
+      proc = static_cast<const CSymProc *>(func->GetSymbol());
+      EmitInstruction("call", proc->GetName(), cmt.str());
       if (i->GetDest()) Store(i->GetDest(), 'a');
+      EmitInstruction("addl", Imm(proc->GetNParams() * 4) + ", %esp");
       break;
     // return [src1]
     case opReturn:
