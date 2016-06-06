@@ -140,6 +140,9 @@ class CBackendx86 : public CBackend {
     virtual void EmitInstruction(string mnemonic, string args="",
                                  string comment="");
 
+    /// @brief emit array initializtion instruction
+    void InitArray(string base, int offset, const CArrayType *type, string name);
+
     /// @brief emit a load instruction
     void Load(CTacAddr *src, string dst, string comment="");
 

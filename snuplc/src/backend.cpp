@@ -36,6 +36,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cassert>
+#include <algorithm>
 
 #include "backend.h"
 using namespace std;
@@ -189,16 +190,94 @@ void CBackendx86::EmitScope(CScope *scope)
   _out << _ind << "# scope " << scope->GetName() << endl
        << label << ":" << endl;
 
-  // TODO
-  // ComputeStackOffsets(scope)
-  //
+  auto symtab = scope->GetSymbolTable();
+  auto symbols = symtab->GetSymbols();
+  stable_sort(symbols.begin(), symbols.end(), [](const CSymbol *a, const CSymbol *b){
+    if (a->GetSymbolType() != b->GetSymbolType()) return false;
+    if (a->GetSymbolType() != stLocal) return false;
+    return a->GetDataType()->GetAlign() > b->GetDataType()->GetAlign();
+  });
+
+  int totalOffset = 0;
+  int paramOffset = 4 + 4;
+  // [ebp][ret][param1][param2][...][paramN]
+
+  _out << _ind << "# stack offsets:" << endl;
+
+  for (auto symbol : symbols) {
+    if (symbol->GetSymbolType() == stLocal) {
+      auto type = symbol->GetDataType();
+      int size = type->GetSize();
+      symbol->SetBaseRegister("%ebp");
+      totalOffset -= size;
+      // 12 for ebx, esi, edi
+      symbol->SetOffset(totalOffset - 12);
+    } else if (symbol->GetSymbolType() == stParam) {
+      symbol->SetBaseRegister("%ebp");
+      symbol->SetOffset(paramOffset);
+      paramOffset += 4;
+    }
+  }
+
+  totalOffset &= ~3;
+
   // emit function prologue
-  //
+  _out << _ind << "# prologue" << endl;
+  EmitInstruction("pushl", "%ebp");
+  EmitInstruction("movl", "%esp, %ebp");
+  EmitInstruction("pushl", "%ebx", "save callee saved registers");
+  EmitInstruction("pushl", "%esi");
+  EmitInstruction("pushl", "%edi");
+
+  if (totalOffset) {
+    char _tmp[100];
+    sprintf(_tmp, "$%d, %%esp", -totalOffset);
+    EmitInstruction("subl", _tmp, "make room for locals");
+  }
+
+  _out << endl;
+
+  // memset
+  if (totalOffset) {
+    char _tmp[100];
+    EmitInstruction("cld", "", "memset local stack area to 0");
+    EmitInstruction("xorl", "%eax, %eax");
+    sprintf(_tmp, "$%d, %%ecx", -totalOffset / 4);
+    EmitInstruction("movl", _tmp);
+    EmitInstruction("movl", "%esp, %edi");
+    EmitInstruction("rep", "stosl");
+
+    // init local array
+    for (auto symbol : symbols) {
+      if (symbol->GetSymbolType() == stLocal) {
+        auto type = symbol->GetDataType();
+        if (!type->IsArray()) continue;
+        InitArray(symbol->GetBaseRegister(),
+                  symbol->GetOffset(),
+                  static_cast<const CArrayType *>(type),
+                  symbol->GetName());
+      }
+    }
+  }
+
   auto cb = scope->GetCodeBlock();
   SetScope(scope);
   EmitCodeBlock(cb);
-  //
+
   // emit function epilogue
+  _out << "# epilogue" << endl;
+
+  if (totalOffset) {
+    char _tmp[100];
+    sprintf(_tmp, "$%d, %%esp", -totalOffset);
+    EmitInstruction("addl", _tmp, "remove locals");
+  }
+
+  EmitInstruction("popl", "%edi");
+  EmitInstruction("popl", "%esi");
+  EmitInstruction("popl", "%ebx");
+  EmitInstruction("popl", "%ebp");
+  EmitInstruction("ret");
 
   _out << endl;
 }
@@ -398,6 +477,10 @@ void CBackendx86::EmitInstruction(string mnemonic, string args, string comment)
        << setw(23) << args;
   if (comment != "") _out << " # " << comment;
   _out << endl;
+}
+
+void CBackendx86::InitArray(string base, int offset, const CArrayType *type, string name)
+{
 }
 
 void CBackendx86::Load(CTacAddr *src, string dst, string comment)
