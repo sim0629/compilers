@@ -359,13 +359,6 @@ void CBackendx86::EmitGlobalData(CScope *scope)
   while (sit != scope->GetSubscopes().end()) EmitGlobalData(*sit++);
 }
 
-void CBackendx86::EmitLocalData(CScope *scope)
-{
-  assert(scope != NULL);
-
-  // TODO TODO!
-}
-
 void CBackendx86::EmitCodeBlock(CCodeBlock *cb)
 {
   assert(cb != NULL);

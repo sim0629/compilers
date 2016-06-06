@@ -124,11 +124,6 @@ class CBackendx86 : public CBackend {
     /// @brief emit global data
     virtual void EmitGlobalData(CScope *s);
 
-    /// @brief emit local data
-    ///
-    /// EmitLocalData() initializes local data (i.e., arrays)
-    virtual void EmitLocalData(CScope *s);
-
     /// @brief emit code for code block @a cb
     virtual void EmitCodeBlock(CCodeBlock *cb);
 
