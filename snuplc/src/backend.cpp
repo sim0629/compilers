@@ -387,6 +387,7 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
   EOperation op = i->GetOperation();
   ostringstream inst;
   const CTacLabel *target;
+  const CTacName *func;
 
   switch (op) {
     // binary operators
@@ -451,7 +452,23 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
       break;
 
     // function call-related operations
-    // TODO
+    // dst = call src1
+    case opCall:
+      func = static_cast<const CTacName *>(i->GetSrc(1));
+      EmitInstruction("call", func->GetSymbol()->GetName(), cmt.str());
+      if (i->GetDest()) Store(i->GetDest(), 'a');
+      break;
+    // return [src1]
+    case opReturn:
+      if (i->GetSrc(1)) Load(i->GetSrc(1), "%eax", cmt.str());
+      EmitInstruction("ret"); // it's trivial although there is no comment.
+      break;
+    // dst = index, src1 = parameter
+    case opParam:
+      // Assume the instructions are well-ordered according to the convention.
+      Load(i->GetSrc(1), "%eax", cmt.str());
+      EmitInstruction("pushl", "%eax");
+      break;
 
     // special
     case opLabel:
