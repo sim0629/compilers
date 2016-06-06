@@ -307,6 +307,7 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
 
   EOperation op = i->GetOperation();
   ostringstream inst;
+  const CTacLabel *target;
 
   switch (op) {
     // binary operators
@@ -350,14 +351,25 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
       EmitInstruction("# opDeref", "not implemented", cmt.str());
       break;
 
-
     // unconditional branching
     // goto dst
-    // TODO
+    case opGoto:
+      target = static_cast<const CTacLabel *>(i->GetDest());
+      EmitInstruction("jmp", Label(target), cmt.str());
+      break;
 
     // conditional branching
     // if src1 relOp src2 then goto dst
-    // TODO
+    case opEqual: case opNotEqual:
+    case opLessThan: case opLessEqual:
+    case opBiggerThan: case opBiggerEqual:
+      Load(i->GetSrc(1), "%eax", cmt.str());
+      Load(i->GetSrc(2), "%ebx");
+      EmitInstruction("cmpl", "%ebx, %eax");
+      inst << "j" << Condition(op);
+      target = static_cast<const CTacLabel *>(i->GetDest());
+      EmitInstruction(inst.str(), Label(target));
+      break;
 
     // function call-related operations
     // TODO
