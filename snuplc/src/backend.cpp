@@ -203,7 +203,6 @@ void CBackendx86::EmitScope(CScope *scope)
   });
 
   int totalOffset = 0;
-  int paramOffset = 4 + 4;
   // [ebp][ret][param1][param2][...][paramN]
 
   _out << _ind << "# stack offsets:" << endl;
@@ -216,10 +215,15 @@ void CBackendx86::EmitScope(CScope *scope)
       totalOffset -= size;
       // 12 for ebx, esi, edi
       symbol->SetOffset(totalOffset - 12);
-    } else if (symbol->GetSymbolType() == stParam) {
+    }
+  }
+
+  for (auto itr = symbols.rbegin(); itr != symbols.rend(); itr++) {
+    auto symbol = *itr;
+    if (symbol->GetSymbolType() == stParam) {
+      auto symparam = static_cast<CSymParam *>(symbol);
       symbol->SetBaseRegister("%ebp");
-      symbol->SetOffset(paramOffset);
-      paramOffset += 4;
+      symbol->SetOffset(8 + 4 * symparam->GetIndex());
     }
   }
 
