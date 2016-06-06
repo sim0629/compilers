@@ -479,9 +479,9 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     case opReturn:
       if (i->GetSrc(1)) {
         Load(i->GetSrc(1), "%eax", cmt.str());
-        EmitInstruction("goto", Label("exit"));
+        EmitInstruction("jmp", Label("exit"));
       } else {
-        EmitInstruction("goto", Label("exit"), cmt.str());
+        EmitInstruction("jmp", Label("exit"), cmt.str());
       }
       break;
     // dst = index, src1 = parameter
