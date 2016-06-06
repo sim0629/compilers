@@ -269,7 +269,8 @@ void CBackendx86::EmitScope(CScope *scope)
   EmitCodeBlock(cb);
 
   // emit function epilogue
-  _out << "# epilogue" << endl;
+  _out << endl << Label("exit") << ":" << endl;
+  _out << _ind << "# epilogue" << endl;
 
   if (totalOffset) {
     char _tmp[100];
@@ -470,8 +471,12 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
       break;
     // return [src1]
     case opReturn:
-      if (i->GetSrc(1)) Load(i->GetSrc(1), "%eax", cmt.str());
-      EmitInstruction("ret"); // it's trivial although there is no comment.
+      if (i->GetSrc(1)) {
+        Load(i->GetSrc(1), "%eax", cmt.str());
+        EmitInstruction("goto", Label("exit"));
+      } else {
+        EmitInstruction("goto", Label("exit"), cmt.str());
+      }
       break;
     // dst = index, src1 = parameter
     case opParam:
