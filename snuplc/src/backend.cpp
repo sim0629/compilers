@@ -503,6 +503,37 @@ void CBackendx86::EmitInstruction(string mnemonic, string args, string comment)
 
 void CBackendx86::InitArray(string base, int offset, const CArrayType *type, string name)
 {
+  {
+    char _operand[100], _comment[100];
+    sprintf(_operand, "$%d,%d(%s)", type->GetNDim(), offset, base.c_str());
+    sprintf(_comment, "local array '%s' : %d dimensions", name.c_str(), type->GetNDim());
+    EmitInstruction("movl", _operand, _comment);
+
+    offset += 4;
+
+    auto arr = type;
+    for (int dim = 1; dim <= type->GetNDim(); dim++) {
+      sprintf(_operand, "$%d,%d(%s)", arr->GetNElem(), offset, base.c_str());
+      sprintf(_comment, "  dimension %d: %d elements", dim, arr->GetNElem());
+      EmitInstruction("movl", _operand, _comment);
+
+      offset += 4;
+
+      auto inner = arr->GetInnerType();
+      if (!inner->IsArray()) break;
+      arr = static_cast<const CArrayType *>(inner);
+    }
+  }
+
+  auto inner = type->GetInnerType();
+  if (!inner->IsArray()) return;
+  auto innerarr = static_cast<const CArrayType *>(inner);
+
+  for (int i = 0; i < type->GetNElem(); i++) {
+    string subscript = '[' + to_string(i) + ']';
+    InitArray(base, offset, innerarr, name + subscript);
+    offset += (innerarr->GetSize() + innerarr->GetAlign() - 1) & ~(innerarr->GetAlign() - 1);
+  }
 }
 
 void CBackendx86::Load(CTacAddr *src, string dst, string comment)
