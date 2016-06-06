@@ -193,7 +193,11 @@ void CBackendx86::EmitScope(CScope *scope)
   auto symtab = scope->GetSymbolTable();
   auto symbols = symtab->GetSymbols();
   stable_sort(symbols.begin(), symbols.end(), [](const CSymbol *a, const CSymbol *b){
-    if (a->GetSymbolType() != b->GetSymbolType()) return false;
+    if (a->GetSymbolType() != b->GetSymbolType()) {
+      int alocal = a->GetSymbolType() == stLocal;
+      int blocal = b->GetSymbolType() == stLocal;
+      return alocal > blocal;
+    }
     if (a->GetSymbolType() != stLocal) return false;
     return a->GetDataType()->GetAlign() > b->GetDataType()->GetAlign();
   });
