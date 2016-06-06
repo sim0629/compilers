@@ -429,7 +429,10 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
 
     // pointer operations
     // dst = &src1
-    // TODO
+    case opAddress:
+      EmitInstruction("leal", Operand(i->GetSrc(1)) + ", %eax", cmt.str());
+      Store(i->GetDest(), 'a');
+      break;
     // dst = *src1
     case opDeref:
       // opDeref not generated for now
@@ -623,10 +626,9 @@ string CBackendx86::Operand(const CTac *op)
     auto tacReference = static_cast<const CTacReference *>(op);
     auto symbol = tacReference->GetSymbol();
     ostringstream o;
-    o << "ref_" << symbol->GetName();
-    operand = o.str();
-    // TODO correct implementation needed
-    // hint: take special care of references (op of type CTacReference)
+    o << symbol->GetOffset() << "(" << symbol->GetBaseRegister() << ")";
+    EmitInstruction("movl", o.str() + ", %edi");
+    operand = "(%edi)";
   }
   else { // op is temp or name not reference
     auto tacName = static_cast<const CTacName *>(op);
@@ -685,25 +687,26 @@ string CBackendx86::Condition(EOperation cond) const
 
 int CBackendx86::OperandSize(CTac *t) const
 {
-  // compute the size for operand t of type CTacName
+  // compute the size for operand t of type CTacAddr
   int size = 4;
 
   assert(t->IsAddr());
   if (t->IsConst()) {
     // size is always 4
   }
-  else if (t->IsReference()) {
-  // TODO
-  // Hint: you need to take special care of references (incl. references to pointers!)
-  //       and arrays. Compare your output to that of the reference implementation
-  //       if you are not sure.
-  }
   else {
-    // size is 4 except boolean
-    auto tacName = static_cast<const CTacName *>(t);
-    auto type = tacName->GetSymbol()->GetDataType();
+    const CType *type;
+    if (t->IsReference()) {
+      auto tacReference = static_cast<const CTacReference *>(t);
+      type = tacReference->GetDerefType();
+    } else {
+      auto tacName = static_cast<const CTacName *>(t);
+      type = tacName->GetSymbol()->GetDataType();
+    }
     auto typeBool = CTypeManager::Get()->GetBool();
-    if (typeBool->Compare(type)) size = 1;
+    auto typeChar = CTypeManager::Get()->GetChar();
+    // size is 4 except bool or char
+    if (typeBool->Compare(type) || typeChar->Compare(type)) size = 1;
   }
 
   return size;

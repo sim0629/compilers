@@ -1771,11 +1771,12 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
   CTacAddr *result;
 
   if (result_type->IsScalar()) {
-    result = new CTacReference(static_cast<CTacTemp *>(result_ptr)->GetSymbol());
+    result = new CTacReference(static_cast<CTacTemp *>(result_ptr)->GetSymbol(), result_type);
   } else {
-    result = cb->CreateTemp(CTypeManager::Get()->GetPointer(result_type));
+    auto type = CTypeManager::Get()->GetPointer(result_type);
+    result = cb->CreateTemp(type);
     cb->AddInstr(new CTacInstr(opAddress, result, 
-      new CTacReference(static_cast<CTacTemp *>(result_ptr)->GetSymbol())));
+      new CTacReference(static_cast<CTacTemp *>(result_ptr)->GetSymbol(), type)));
   }
 
   return result;

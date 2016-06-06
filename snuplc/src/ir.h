@@ -333,8 +333,8 @@ class CTacReference: public CTacName {
     /// reference to the storage location
     ///
     /// param symbol value holding the reference
-    /// param deref  the symbol behind the reference
-    CTacReference(const CSymbol *symbol, const CSymbol *deref=nullptr);
+    /// param deref the type behind the reference
+    CTacReference(const CSymbol *symbol, const CType *deref);
 
     /// @}
 
@@ -348,8 +348,8 @@ class CTacReference: public CTacName {
     /// @name properties
     /// @{
 
-    /// @brief return the symbol
-    const CSymbol* GetDerefSymbol(void) const;
+    /// @brief return the type of deref
+    const CType* GetDerefType(void) const;
 
     /// @}
 
@@ -365,7 +365,7 @@ class CTacReference: public CTacName {
     /// @}
 
   protected:
-    const CSymbol *_deref;           ///< symbol this reference is pointing to
+    const CType *_deref;           ///< type this reference is pointing to
 };
 
 

@@ -203,12 +203,12 @@ CTacTemp::CTacTemp(const CSymbol *symbol)
 //------------------------------------------------------------------------------
 // CTacReference
 //
-CTacReference::CTacReference(const CSymbol *symbol, const CSymbol *deref)
+CTacReference::CTacReference(const CSymbol *symbol, const CType *deref)
   : CTacName(symbol), _deref(deref)
 {
 }
 
-const CSymbol* CTacReference::GetDerefSymbol(void) const
+const CType* CTacReference::GetDerefType(void) const
 {
   return _deref;
 }
