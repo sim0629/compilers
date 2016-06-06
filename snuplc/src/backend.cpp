@@ -417,8 +417,21 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     // memory operations
     // dst = src1
     case opAssign:
-      Load(i->GetSrc(1), "%eax", cmt.str());
-      Store(i->GetDest(), 'a');
+      {
+        auto src1 = i->GetSrc(1);
+        if (src1->IsName()) {
+          auto name = static_cast<CTacName *>(src1);
+          auto type = name->GetSymbol()->GetDataType();
+          if (type->IsPointer() || type->IsArray()) {
+            assert(i->GetDest()->IsName());
+            // take special care of array assigning
+            ArrayAssign(name, static_cast<CTacName *>(i->GetDest()));
+            break;
+          }
+        }
+        Load(i->GetSrc(1), "%eax", cmt.str());
+        Store(i->GetDest(), 'a');
+      }
       break;
 
     // pointer operations
@@ -607,6 +620,33 @@ void CBackendx86::Store(CTac *dst, char src_base, string comment)
 
   // emit the store instruction
   EmitInstruction(mnm + mod, src + ", " + Operand(dst), comment);
+}
+
+void CBackendx86::ArrayAssign(CTacName *src, CTacName *dst)
+{
+  EmitInstruction("cld", "", "array assign");
+
+  if (src->GetSymbol()->GetDataType()->IsArray()) {
+    EmitInstruction("leal", Operand(src) + ", %esi", "ptr of src array");
+  } else {
+    Load(src, "%esi", "ptr of src array");
+  }
+  if (dst->GetSymbol()->GetDataType()->IsArray()) {
+    EmitInstruction("leal", Operand(dst) + ", %esi", "ptr of src array");
+  } else {
+    Load(dst, "%edi", "ptr of dst array");
+  }
+
+  auto type = src->GetSymbol()->GetDataType();
+  if (type->IsPointer()) {
+    type = static_cast<const CPointerType *>(type)->GetBaseType();
+  }
+
+  assert(type->IsArray());
+
+  int copysize = type->GetSize();
+  EmitInstruction("movl", "$" + to_string(copysize) + ", %ecx", "size of array = " + to_string(copysize));
+  EmitInstruction("rep", "movsb");
 }
 
 string CBackendx86::Operand(const CTac *op)

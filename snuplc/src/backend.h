@@ -147,6 +147,9 @@ class CBackendx86 : public CBackend {
     /// @brief emit a store instruction
     void Store(CTac *dst, char src_base, string comment="");
 
+    /// @brief emit array assignment instructions
+    void ArrayAssign(CTacName *src, CTacName *dst);
+
     /// @brief return an operand string for @a op
     /// @param op the operand
     string Operand(const CTac *op);
