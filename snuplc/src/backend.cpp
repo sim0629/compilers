@@ -537,25 +537,3 @@ int CBackendx86::OperandSize(CTac *t) const
 
   return size;
 }
-
-size_t CBackendx86::ComputeStackOffsets(CSymtab *symtab,
-                                        int param_ofs,int local_ofs)
-{
-  assert(symtab != NULL);
-  vector<CSymbol*> slist = symtab->GetSymbols();
-
-  // TODO
-  // foreach local symbol l in slist do
-  //   compute aligned offset on stack and store in symbol l
-  //   set base register to %ebp
-  //
-  // foreach parameter p in slist do
-  //   compute offset on stack and store in symbol p
-  //   set base register to %ebp
-  //
-  // align size
-  //
-  // dump stack frame to assembly file
-
-  return 0;
-}

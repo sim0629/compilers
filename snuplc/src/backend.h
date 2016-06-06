@@ -165,15 +165,6 @@ class CBackendx86 : public CBackend {
     /// @brief compute the size of operator @a t
     int OperandSize(CTac *t) const;
 
-    /// @brief compute the location of local variables, temporaries and
-    ///        arguments on the stack. Returns the total size occupied on
-    ///        the stack as well as the the number of arguments for this
-    ///        scope (if @a nargs is not NULL)
-    /// @param symtab symbol table
-    /// @param param_ofs offset to parameters from base pointer after epilogue
-    /// @param local_ofs offset to local vars from base pointer after epilogue
-    size_t ComputeStackOffsets(CSymtab *symtab, int param_ofs, int local_ofs);
-
     /// @}
 
     string _ind;                    ///< indentation
