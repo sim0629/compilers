@@ -1902,7 +1902,7 @@ CAstStringConstant::CAstStringConstant(CToken t, const string value,
   _value = new CDataInitString(value);
 
   ostringstream o;
-  o << "_str_#" << ++_idx;
+  o << "_str_$" << ++_idx;
 
   _sym = new CSymGlobal(o.str(), _type);
   _sym->SetData(_value);
