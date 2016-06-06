@@ -297,6 +297,15 @@ void CBackendx86::EmitGlobalData(CScope *scope)
   bool header = false;
 
   vector<CSymbol*> slist = st->GetSymbols();
+  stable_sort(slist.begin(), slist.end(), [](const CSymbol *a, const CSymbol *b){
+   if (a->GetSymbolType() != b->GetSymbolType()) {
+      int aglobal = a->GetSymbolType() == stGlobal;
+      int bglobal = b->GetSymbolType() == stGlobal;
+      return aglobal > bglobal;
+    }
+    if (a->GetSymbolType() != stGlobal) return false;
+    return a->GetDataType()->GetAlign() > b->GetDataType()->GetAlign();
+  });
 
   _out << dec;
 
