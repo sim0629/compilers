@@ -376,7 +376,8 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
 
     // special
     case opLabel:
-      _out << Label(dynamic_cast<CTacLabel*>(i)) << ":" << endl;
+      target = static_cast<const CTacLabel *>(i);
+      _out << Label(target) << ":" << endl;
       break;
 
     case opNop:
