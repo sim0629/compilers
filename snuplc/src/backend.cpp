@@ -398,8 +398,13 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
       Load(i->GetSrc(1), "%eax", cmt.str());
       Load(i->GetSrc(2), "%ebx");
       if (op == opDiv) EmitInstruction("cdq");
-      inst << op << "l";
-      EmitInstruction(inst.str(), "%ebx, %eax");
+      if (op == opMul || op == opDiv) {
+        inst << "i" << op << "l";
+        EmitInstruction(inst.str(), "%ebx");
+      } else {
+        inst << op << "l";
+        EmitInstruction(inst.str(), "%ebx, %eax");
+      }
       Store(i->GetDest(), 'a');
       break;
 
