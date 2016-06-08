@@ -1781,9 +1781,7 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
     result = new CTacReference(static_cast<CTacTemp *>(result_ptr)->GetSymbol(), result_type);
   } else {
     auto type = CTypeManager::Get()->GetPointer(result_type);
-    result = cb->CreateTemp(type);
-    cb->AddInstr(new CTacInstr(opAddress, result, 
-      new CTacReference(static_cast<CTacTemp *>(result_ptr)->GetSymbol(), type)));
+    result = new CTacReference(static_cast<CTacTemp *>(result_ptr)->GetSymbol(), type);
   }
 
   return result;
