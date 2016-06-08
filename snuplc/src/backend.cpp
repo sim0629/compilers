@@ -400,12 +400,16 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     // unary operators
     // dst = op src1
     case opNeg: case opPos:
-    case opNot:
       Load(i->GetSrc(1), "%eax", cmt.str());
       if (op != opPos) {
         inst << op << "l";
         EmitInstruction(inst.str(), "%eax");
       }
+      Store(i->GetDest(), 'a');
+      break;
+    case opNot:
+      Load(i->GetSrc(1), "%eax", cmt.str());
+      EmitInstruction("xorl", Imm(1) + ", %eax");
       Store(i->GetDest(), 'a');
       break;
 
