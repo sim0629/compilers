@@ -636,7 +636,7 @@ void CBackendx86::ArrayAssign(CTacName *src, CTacName *dst)
     Load(src, "%esi", "ptr of src array");
   }
   if (dst->GetSymbol()->GetDataType()->IsArray()) {
-    EmitInstruction("leal", Operand(dst) + ", %esi", "ptr of src array");
+    EmitInstruction("leal", Operand(dst) + ", %edi", "ptr of dst array");
   } else {
     Load(dst, "%edi", "ptr of dst array");
   }
