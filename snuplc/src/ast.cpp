@@ -1677,7 +1677,7 @@ const CType* CAstArrayDesignator::GetType(void) const
     type = static_cast<const CArrayType *>(type)->GetInnerType();
   }
 
-  return type;
+  return type->IsArray() ? CTypeManager::Get()->GetPointer(type) : type;
 }
 
 ostream& CAstArrayDesignator::print(ostream &out, int indent) const
